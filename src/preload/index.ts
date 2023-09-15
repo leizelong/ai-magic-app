@@ -1,8 +1,23 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import child_process from 'child_process'
+
+// PythonShell.runString('x=1+1;print(x)').then((messages) => {
+//   console.log('finished', messages)
+// })
+
+// exec('yt-dlp --list-formats -i url https://youtu.be/mmUfZt10b6g', (err, stdout) => {
+//   console.log('stdout :>> ', stdout)
+// })
+
+// child_process
+//   .spawn('yt-dlp', ['--list-formats', '-i', 'url', 'https://youtu.be/mmUfZt10b6g'], {})
+//   .stdout.on('data', (data) => {
+//     console.log('spawn :>> ', data.toString())
+//   })
 
 // Custom APIs for renderer
-const api = {}
+export const api = { child_process }
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
