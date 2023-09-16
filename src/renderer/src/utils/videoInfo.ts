@@ -4,12 +4,15 @@ interface StreamFormat {
   resolution: string
   filesize: number
   format_id: string
+  height: number
+  width: number
 }
 
 export interface VideoInfo {
-  formats?: StreamFormat[]
+  formats: StreamFormat[]
   title?: string
   thumbnail?: string
+  original_url: string
 }
 
 export function getVideoInfo(url: string) {
@@ -22,14 +25,15 @@ export function getVideoInfo(url: string) {
         console.log('stderr :>> ', stderr)
       }
       try {
-        // console.log('stdout :>> ', stdout)
         const info = JSON.parse(stdout)
-        // console.log('info :>> ', info)
         resolve(info)
       } catch (error) {
         reject(error)
       }
     })
+    setTimeout(() => {
+      reject(new Error('搜索超时'))
+    }, 1000 * 60);
   })
 }
 
@@ -46,8 +50,8 @@ export function groupByExt(videoInfo: VideoInfo | null, targetExt: StreamFormat[
   return resultMap?.get(targetExt)
 }
 
-export function filterQuatityVideo(videoList?: StreamFormat[]) {
-  return videoList?.filter((video) => !!video.format_note)
+export function filterQualityVideo(videoList?: StreamFormat[]) {
+  return videoList?.filter((video) => !!(video.format_note && video.filesize)  )
 }
 
 export function getReadableFileSizeString(fileSizeInBytes) {

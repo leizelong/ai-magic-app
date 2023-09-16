@@ -1,6 +1,7 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import child_process from 'child_process'
+import path from 'path'
 
 // PythonShell.runString('x=1+1;print(x)').then((messages) => {
 //   console.log('finished', messages)
@@ -17,7 +18,7 @@ import child_process from 'child_process'
 //   })
 
 // Custom APIs for renderer
-export const api = { child_process }
+export const api = { child_process, path }
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
