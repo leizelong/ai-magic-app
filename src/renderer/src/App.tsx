@@ -5,24 +5,18 @@ import { Breadcrumb, Layout, Menu, MenuProps } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { Header, Content, Footer } from 'antd/es/layout/layout'
 import { useState } from 'react'
-import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined
-} from '@ant-design/icons'
-import { HashRouter, Route, Routes } from 'react-router-dom'
+import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import { SearchPage } from './pages/search'
-
-getVideoInfo('https://youtu.be/mmUfZt10b6g')
+import { KeyframesPage } from './pages/keyframes'
 
 type MenuItem = Required<MenuProps>['items'][number]
 
 const menus: MenuItem[] = [
-  { label: 'Search', key: 'Search' },
-  { label: 'Downloading', key: 'Downloading' },
-  { label: 'Downloaded', key: 'Downloaded' }
+  { label: <Link to="/search">Download</Link>, key: 'search' },
+  {
+    label: <Link to="/keyframes">keyframes</Link>,
+    key: 'keyframes'
+  }
 ]
 
 function App(): JSX.Element {
@@ -33,28 +27,21 @@ function App(): JSX.Element {
       <Header style={{ padding: 0 }}>
         <h1 style={{ color: '#fff', textAlign: 'center' }}>YouTube Downloader</h1>
       </Header>
-
-      <Layout hasSider className="site-layout">
-        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <div className="logo" />
-          <Menu theme="dark" mode="inline" items={menus} />
-        </Sider>
-        <Content style={{ margin: '0 16px' }}>
-          {/* <div className="site-layout-background" style={{ padding: 24, minHeight: 360 }}>
-            Bill is a cat.
-          </div> */}
-          <HashRouter>
+      <HashRouter>
+        <Layout hasSider className="site-layout">
+          <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+            <div className="logo" />
+            <Menu theme="dark" mode="inline" items={menus} />
+          </Sider>
+          <Content style={{ padding: 16 }}>
             <Routes>
-              <Route
-                path="/"
-                // Component={SearchPage}
-                element={<SearchPage></SearchPage>}
-              />
+              <Route path="/" Component={KeyframesPage} />
+              <Route path="/search" Component={SearchPage} />
+              <Route path="/keyframes" Component={KeyframesPage} />
             </Routes>
-          </HashRouter>
-        </Content>
-        {/* <Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer> */}
-      </Layout>
+          </Content>
+        </Layout>
+      </HashRouter>
     </Layout>
   )
 }
