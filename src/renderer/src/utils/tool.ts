@@ -10,9 +10,9 @@ export function exec<T = any>(cmd: string, options?: ExecOptions, config?: ExecC
       if (err) {
         reject(err)
       }
-      if (stderr) {
-        console.log(`${cmd} stderr :>>`, stderr)
-      }
+      // if (stderr) {
+      //   console.log(`${cmd} stderr :>>`, stderr)
+      // }
 
       try {
         // const info = JSON.parse(stdout.toString())
@@ -25,6 +25,9 @@ export function exec<T = any>(cmd: string, options?: ExecOptions, config?: ExecC
         }
       } catch (error) {
         reject(error)
+        if (stderr) {
+          console.log(`${cmd} stderr :>> \n`, stderr)
+        }
       }
     })
   })

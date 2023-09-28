@@ -1,68 +1,92 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
-import { Button, message, Space, Upload } from 'antd'
+import { Button, Form, Input, message, Space, Upload, FormInstance } from 'antd'
 
 const { Dragger } = Upload
 import './index.scss'
 import { exec } from '@renderer/utils/tool'
-import { FrameResult } from '@renderer/utils/frame'
+import { FrameResult, generateKeyframes, getFrames } from '@renderer/utils/frame'
+
+interface FormValue {
+  outputPath: string
+  videoPath: string
+}
 
 export function KeyframesPage() {
-  const [filePath, setFilePath] = useState<string>()
+  const [form] = Form.useForm<FormValue>()
+  const [keyFramesLoading, setKeyframesLoading] = useState(false)
+
+  const videoPath = Form.useWatch('videoPath', form)
+
+  const initialValues: Partial<FormValue> = {
+    outputPath: '/Users/youyu/Documents/ai-workspace/images',
+    videoPath: '/Users/youyu/Documents/projects/image-app/output.mp4'
+  }
 
   const draggerProps: UploadProps = {
     name: 'file',
-    // multiple: true,
-    // action: 'https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188',
+    multiple: false,
+    maxCount: 1,
     beforeUpload(file, fileList) {
-      console.log('beforeUpload :>> ', file, fileList)
-      setFilePath(file.path)
+      // console.log('beforeUpload :>> ', file, fileList)
       return false
     },
-    // onChange(info) {
-    //   const { status } = info.file
-    //   if (status !== 'uploading') {
-    //     console.log(info.file, info.fileList)
-    //   }
-    //   if (status === 'done') {
-    //     message.success(`${info.file.name} file uploaded successfully.`)
-    //   } else if (status === 'error') {
-    //     message.error(`${info.file.name} file upload failed.`)
-    //   }
-    // },
-    onDrop(e) {
-      console.log('Dropped files', e.dataTransfer.files)
+    onChange({ file, fileList }) {
+      const filePath = fileList[0].originFileObj?.path
+      form.setFieldValue('videoPath', filePath)
     }
   }
 
   async function handleGenerate() {
-    const frameRes = await exec<FrameResult>(
-      `ffprobe -i ${
-        filePath || '/Users/youyu/Documents/projects/image-app/output.mp4'
-      } -v quiet -select_streams v -show_frames -of json`,
-      {
-        maxBuffer: 1024 * 1024 * 1024
-      },
-      { json: true }
-    )
+    setKeyframesLoading(true)
 
-    const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
+    try {
+      const values = await form.validateFields()
+      const { videoPath, outputPath } = values
+      // console.log('values', values)
 
-    console.log('IFrames :>> ', keyFrames)
+      const frameRes = await getFrames(videoPath)
+
+      const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
+      // console.log('IFrames :>> ', keyFrames)
+
+      await generateKeyframes(videoPath, outputPath)
+
+      message.success('生成关键帧成功')
+    } catch (error: any) {
+      message.error(error.message)
+      console.log('error :>> ', error)
+    } finally {
+      setKeyframesLoading(false)
+    }
+
+    // const fileObj = new File()
   }
 
   return (
     <div className="keyframes-page">
-      <Dragger {...draggerProps}>
-        <p className="ant-upload-drag-icon">
-          <InboxOutlined />
-        </p>
-        <p className="ant-upload-text">Click or drag file to this area to upload</p>
-        <p className="ant-upload-hint">{filePath}</p>
-      </Dragger>
+      <Form colon form={form} initialValues={initialValues}>
+        <Form.Item name="videoPath" rules={[{ required: true, message: '请上传视频' }]}>
+          <Dragger {...draggerProps}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">点击，或者拖动文件上传视频</p>
+            <p className="ant-upload-hint">{videoPath}</p>
+          </Dragger>
+        </Form.Item>
 
-      <Button type="primary" onClick={handleGenerate}>
+        <Form.Item
+          name="outputPath"
+          label="关键帧生成目录"
+          rules={[{ required: true, message: '必填' }]}
+        >
+          <Input></Input>
+        </Form.Item>
+      </Form>
+
+      <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
         生成关键帧
       </Button>
     </div>
