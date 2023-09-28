@@ -1,3 +1,4 @@
+import { fs, path } from './module'
 import { exec } from './tool'
 
 export type FrameResult = {
@@ -29,4 +30,18 @@ export async function getFrames(filePath: string) {
     },
     { json: true }
   )
+}
+
+export async function getKeyframesPaths(dirPath: string) {
+  return new Promise<string[]>((resolve, reject) => {
+    try {
+      const files = fs.readdirSync(dirPath)
+      const filePaths = files.map((file) => {
+        return path.join(dirPath, file)
+      })
+      resolve(filePaths)
+    } catch (error) {
+      reject(error)
+    }
+  })
 }
