@@ -5,18 +5,33 @@ import { Button, Form, Input, message, Space, Upload, FormInstance, List } from 
 
 const { Dragger } = Upload
 import './index.scss'
-import { exec } from '@renderer/utils/tool'
+import { exec, generateHash } from '@renderer/utils/tool'
 import { FrameResult, generateKeyframes, getFrames, getKeyframesPaths } from '@renderer/utils/frame'
 import { LocalImage } from '@renderer/components/LocalImage'
+import { webSocket } from 'rxjs/webSocket'
+import {
+  SDTaskChannelData,
+  createBatchImage2ImageTask,
+  createTaggerTask
+} from '@renderer/utils/sdApi'
+import {
+  extractFileNameWithoutExtension,
+  readImage2ImageDirectory,
+  readTxtFilesInDirectory
+} from '@renderer/utils/file'
 
 interface FormValue {
-  outputPath: string
+  keyframesOutputPath: string
   videoPath: string
+  taggerOutputPath: string
+  image2ImageOutputPath: string
 }
 
 interface KeyframeDto {
+  name?: string
   filePath: string
-  prompts: string
+  prompts?: string
+  image2ImageFilePath?: string
 }
 
 export function KeyframesPage() {
@@ -29,8 +44,10 @@ export function KeyframesPage() {
   const videoPath = Form.useWatch('videoPath', form)
 
   const initialValues: Partial<FormValue> = {
-    outputPath: '/Users/youyu/Documents/ai-workspace/images',
-    videoPath: '/Users/youyu/Documents/projects/image-app/output.mp4'
+    keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
+    videoPath: 'D:\\ai-workspace\\好声音第一集\\01-noart-10s.mp4',
+    taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
+    image2ImageOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-output'
   }
 
   const draggerProps: UploadProps = {
@@ -48,32 +65,45 @@ export function KeyframesPage() {
   }
 
   async function initKeyframesData() {
-    const values = form.getFieldsValue()
-    const { videoPath, outputPath } = values
-    const filePaths = await getKeyframesPaths(outputPath)
-    const data = filePaths.map((filePath) => ({
-      filePath,
-      prompts:
-        'anime girl with long hair and a smile looking at the camera, smooth anime cg art, high detailed face anime, beautiful anime portrait, stunning anime face portrait, anime. soft lighting, art of wlop, beautiful anime art style, anime keyframe, makoto shinkai and artgerm, anime still image, beautiful anime artwork, beautiful anime art, in the anime film, visual novel cg, beautiful anime style, detailed anime soft face, anime moe artstyle, realistic anime artstyle, clean detailed anime art, detailed portrait of anime girl, cute anime girl portrait, anime poster film still portrait, still from anime, anime visual of a young woman, trending anime art, realistic - anime, wlop painting style, anime still frame, anime movie frame, the style of wlop, portrait anime girl, detailed anime art, black hair, blurry, blurry background, blurry foreground, blush, depth of field, earrings, open mouth, smile'
-    }))
+    const values = await form.validateFields()
+    const { videoPath, keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } = values
+    console.log('initKeyframesData values :>> ', values)
+    const filePaths = await getKeyframesPaths(keyframesOutputPath)
+    const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
+    const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
+
+    console.log('promptsMap :>> ', promptsMap)
+    console.log('image2ImageOutputMap :>> ', image2ImageOutputMap)
+
+    const data = filePaths.map((filePath) => {
+      const name = extractFileNameWithoutExtension(filePath)
+      const prompts = promptsMap.get(name)
+      return {
+        filePath,
+        name,
+        prompts,
+        image2ImageFilePath: image2ImageOutputMap.get(name)
+      }
+    })
     setKeyframesDataSource(data)
   }
 
   useEffect(() => {
-    initKeyframesData()
+    setTimeout(() => {
+      initKeyframesData()
+    }, 1000)
   }, [])
 
   async function handleGenerate() {
     setKeyframesLoading(true)
     try {
       const values = await form.validateFields()
-      const { videoPath, outputPath } = values
-
+      const { videoPath, keyframesOutputPath } = values
       // const frameRes = await getFrames(videoPath)
 
       // const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
 
-      await generateKeyframes(videoPath, outputPath)
+      await generateKeyframes(videoPath, keyframesOutputPath)
       await initKeyframesData()
 
       message.success('生成关键帧成功')
@@ -86,8 +116,37 @@ export function KeyframesPage() {
     // const fileObj = new File()
   }
 
+  async function handleTaggerPrompts() {
+    const values = await form.validateFields()
+    const { keyframesOutputPath, taggerOutputPath } = values
+    await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
+
+    message.success('反推关键词成功')
+
+    const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
+    let nextKeyframes = [...keyframesDataSource]
+    nextKeyframes = nextKeyframes.map((keyframe) => {
+      const { name } = keyframe
+      if (!name) return keyframe
+      const prompts = promptsMap.get(name)
+      return { ...keyframe, prompts }
+    })
+    setKeyframesDataSource(nextKeyframes)
+  }
+
+  async function handleBatchImage2Image() {
+    const values = await form.validateFields()
+    const { keyframesOutputPath, image2ImageOutputPath, taggerOutputPath } = values
+
+    await createBatchImage2ImageTask({
+      inputPath: keyframesOutputPath,
+      outputPath: image2ImageOutputPath,
+      promptPath: taggerOutputPath
+    })
+  }
+
   function renderListItem(item: KeyframeDto) {
-    const { filePath, prompts } = item
+    const { filePath, prompts, image2ImageFilePath } = item
     return (
       <List.Item>
         <Space size="large">
@@ -102,6 +161,8 @@ export function KeyframesPage() {
           <Space direction="vertical">
             <Button type="primary">图生图</Button>
           </Space>
+
+          <LocalImage className="image2image" filePath={image2ImageFilePath}></LocalImage>
         </Space>
       </List.Item>
     )
@@ -121,9 +182,24 @@ export function KeyframesPage() {
         </Form.Item>
 
         <Form.Item
-          name="outputPath"
+          name="keyframesOutputPath"
           label="关键帧生成目录"
           rules={[{ required: true, message: '关键帧生成目录必填' }]}
+        >
+          <Input></Input>
+        </Form.Item>
+
+        <Form.Item
+          name="taggerOutputPath"
+          label="反推提示词生成目录"
+          rules={[{ required: true, message: '反推提示词生成目录必填' }]}
+        >
+          <Input></Input>
+        </Form.Item>
+        <Form.Item
+          name="image2ImageOutputPath"
+          label="批量图生图生成目录"
+          rules={[{ required: true, message: '批量图生图生成目录必填' }]}
         >
           <Input></Input>
         </Form.Item>
@@ -133,10 +209,10 @@ export function KeyframesPage() {
         <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
           生成关键帧
         </Button>
-        <Button type="primary" onClick={handleGenerate}>
+        <Button type="primary" onClick={handleTaggerPrompts}>
           一键反推提示词
         </Button>
-        <Button type="primary" onClick={handleGenerate}>
+        <Button type="primary" onClick={handleBatchImage2Image}>
           一键图生图
         </Button>
       </Space>

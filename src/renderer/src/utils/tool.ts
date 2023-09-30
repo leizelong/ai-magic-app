@@ -1,3 +1,5 @@
+import MD5 from 'crypto-js/md5'
+
 type ExecOptions = Parameters<typeof window.api.child_process.exec>[1]
 
 type ExecConfig = {
@@ -50,18 +52,17 @@ export function readFile(filePath: string, options?: any) {
 
 function blobToBase64(blob: Blob) {
   return new Promise((resolve, reject) => {
-    const fileReader = new FileReader();
+    const fileReader = new FileReader()
     fileReader.onload = (e: any) => {
-      resolve(e?.target.result);
-    };
+      resolve(e?.target.result)
+    }
     // readAsDataURL
-    fileReader.readAsDataURL(blob);
+    fileReader.readAsDataURL(blob)
     fileReader.onerror = () => {
-      reject(new Error('blobToBase64 error'));
-    };
-  });
+      reject(new Error('blobToBase64 error'))
+    }
+  })
 }
-
 
 export async function fileToUrl(filePath: string) {
   const buffer = await readFile(filePath)
@@ -72,4 +73,17 @@ export async function fileToUrl(filePath: string) {
   // console.log('base64 :>> ', base64);
   // console.log('url :>> ', url)
   return url
+}
+
+// 生成哈希并控制长度的函数
+export function generateHash(input: string, length = 11): string {
+  // const input = new Date().getTime().toString()
+  const uniqueInput = `${input}_${new Date().getTime().toString()}`
+  // 使用MD5哈希算法计算哈希值
+  const hash = MD5(uniqueInput).toString()
+
+  // 截取指定长度的哈希值
+  const truncatedHash = hash.slice(0, length)
+
+  return truncatedHash
 }
