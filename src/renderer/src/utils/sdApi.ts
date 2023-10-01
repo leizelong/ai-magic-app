@@ -140,234 +140,6 @@ interface BatchImage2ImageTaskDto {
   seed?: string
 }
 
-export function createBatchImage2ImageTask(data: BatchImage2ImageTaskDto) {
-  return new Promise<void>((resolve, reject) => {
-    // 1440 x 1080; 720 * 540; 360 * 270
-    const {
-      inputPath,
-      outputPath,
-      promptPath,
-      steps = 35,
-      redraw = 0.4,
-      width = 720,
-      height = 540,
-      seed = '3018052043'
-    } = data
-
-    const subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
-    const taskNameHash = `task(${generateHash('taskName', 15)})`
-
-    function handleSendHash() {
-      subject.next({
-        fn_index: TaggerFnIndex,
-        session_hash
-      })
-    }
-
-    function handleSendData() {
-      subject.next({
-        data: [
-          // 'task(2s2ggimcxn5cgdn)',
-          taskNameHash,
-          5,
-          '',
-          '',
-          [],
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          /** steps */
-          // 15,
-          steps,
-          'DPM++ 2M Karras',
-          4,
-          0,
-          'original',
-          1,
-          1,
-          7,
-          1.5,
-          /** 重绘系数 0-1 */
-          redraw,
-          null,
-          /** width */
-          // 512,
-          /** height */
-          // 512,
-          height,
-          width,
-          1,
-          'Just resize',
-          'Whole picture',
-          32,
-          'Inpaint masked',
-          // 'D:\\ai-workspace\\好声音第一集\\keyframes',
-          inputPath,
-          // 'D:\\ai-workspace\\好声音第一集\\keyframes-output',
-          outputPath,
-          '',
-          [],
-          true,
-          ['Prompt'],
-          // 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
-          promptPath,
-          'None',
-          false,
-          '',
-          0.8,
-          /** seed */
-          -1,
-          false,
-          -1,
-          0,
-          0,
-          0,
-          false,
-          false,
-          'LoRA',
-          'None',
-          1,
-          1,
-          'LoRA',
-          'None',
-          1,
-          1,
-          'LoRA',
-          'None',
-          1,
-          1,
-          'LoRA',
-          'None',
-          1,
-          1,
-          'LoRA',
-          'None',
-          1,
-          1,
-          null,
-          'Refresh models',
-          null,
-          null,
-          null,
-          '* `CFG Scale` should be 2 or lower.',
-          true,
-          true,
-          '',
-          '',
-          true,
-          50,
-          true,
-          1,
-          0,
-          false,
-          4,
-          0.5,
-          'Linear',
-          'None',
-          '<p style="margin-bottom:0.75em">Recommended settings: Sampling Steps: 80-100, Sampler: Euler a, Denoising strength: 0.8</p>',
-          128,
-          8,
-          ['left', 'right', 'up', 'down'],
-          1,
-          0.05,
-          128,
-          4,
-          'fill',
-          ['left', 'right', 'up', 'down'],
-          false,
-          false,
-          'positive',
-          'comma',
-          0,
-          false,
-          false,
-          '',
-          '<p style="margin-bottom:0.75em">Will upscale the image by the selected scale factor; use width and height sliders to set tile size</p>',
-          64,
-          'None',
-          2,
-          'Seed',
-          '',
-          [],
-          'Nothing',
-          '',
-          [],
-          'Nothing',
-          '',
-          [],
-          true,
-          false,
-          false,
-          false,
-          0,
-          false,
-          true,
-          0.5,
-          true,
-          null,
-          null,
-          false,
-          null,
-          null,
-          false,
-          null,
-          null,
-          false,
-          50,
-          [],
-          '',
-          '',
-          ''
-        ],
-        event_data: null,
-        fn_index: Image2ImageFnIndex,
-        session_hash
-      })
-    }
-
-    function handleCompleteMessage(data: SDTaskChannelData) {
-      // todo err 未处理
-      const { data: outputData } = data.output || {}
-      const resultInfo: string = outputData?.[3]
-      // console.log('outputData :>> ', outputData)
-      // console.log('resultInfo :>> ', resultInfo)
-
-      // if (resultInfo?.includes('input path is not a directory')) {
-      //   reject(new Error('input path is not a directory'))
-      // }
-
-      resolve()
-    }
-
-    function handleComplete() {}
-
-    function handleError(err) {
-      reject(err)
-    }
-
-    subject.subscribe({
-      next: (data) => {
-        console.log('message received: ', data)
-        const { msg } = data
-        if (msg === 'send_hash') {
-          handleSendHash()
-        } else if (msg === 'send_data') {
-          handleSendData()
-        } else if (msg === 'process_completed') {
-          handleCompleteMessage(data)
-        }
-      }, // Called whenever there is a message from the server.
-      error: handleError, // Called if at any point WebSocket API signals some kind of error.
-      complete: handleComplete // Called when connection is closed (for whatever reason).
-    })
-    // return lastValueFrom(subject)
-  })
-}
-
 const commonNegativePrompt =
   'NSFW, (worst quality:2), (low quality:2), (normal quality:2), lowres, normal quality, ((monochrome)), ((grayscale)), skin spots, acnes, skin blemishes, age spot, (ugly:1.331), (duplicate:1.331), (morbid:1.21), (mutilated:1.21), (tranny:1.331), mutated hands, (poorly drawn hands:1.5), blurry, (bad anatomy:1.21), (bad proportions:1.331), extra limbs, (disfigured:1.331), (missing arms:1.331), (extra legs:1.331), (fused fingers:1.61051), (too many fingers:1.61051), (unclear eyes:1.331), lowers, bad hands, missing fingers, extra digit,bad hands, missing fingers, (((extra arms and legs))),nsfw'
 
@@ -386,6 +158,8 @@ export function createImage2ImageTask(data: Image2ImageTaskDto) {
       redraw = 0.4,
       width = 576,
       height = 432,
+      // width = 720,
+      // height = 540,
       seed,
       prompt = '',
       negativePrompt = commonNegativePrompt,
@@ -592,6 +366,234 @@ export function createImage2ImageTask(data: Image2ImageTaskDto) {
         throw new Error('not a file')
       }
       resolve([name, randomSeed])
+    }
+
+    function handleComplete() {}
+
+    function handleError(err) {
+      reject(err)
+    }
+
+    subject.subscribe({
+      next: (data) => {
+        console.log('message received: ', data)
+        const { msg } = data
+        if (msg === 'send_hash') {
+          handleSendHash()
+        } else if (msg === 'send_data') {
+          handleSendData()
+        } else if (msg === 'process_completed') {
+          handleCompleteMessage(data)
+        }
+      }, // Called whenever there is a message from the server.
+      error: handleError, // Called if at any point WebSocket API signals some kind of error.
+      complete: handleComplete // Called when connection is closed (for whatever reason).
+    })
+    // return lastValueFrom(subject)
+  })
+}
+
+export function createBatchImage2ImageTask(data: BatchImage2ImageTaskDto) {
+  return new Promise<void>((resolve, reject) => {
+    // 1440 x 1080; 720 * 540; 360 * 270
+    const {
+      inputPath,
+      outputPath,
+      promptPath,
+      steps = 35,
+      redraw = 0.4,
+      width = 720,
+      height = 540,
+      seed = '3018052043'
+    } = data
+
+    const subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
+    const taskNameHash = `task(${generateHash('taskName', 15)})`
+
+    function handleSendHash() {
+      subject.next({
+        fn_index: TaggerFnIndex,
+        session_hash
+      })
+    }
+
+    function handleSendData() {
+      subject.next({
+        data: [
+          // 'task(2s2ggimcxn5cgdn)',
+          taskNameHash,
+          5,
+          '',
+          '',
+          [],
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          /** steps */
+          // 15,
+          steps,
+          'DPM++ 2M Karras',
+          4,
+          0,
+          'original',
+          1,
+          1,
+          7,
+          1.5,
+          /** 重绘系数 0-1 */
+          redraw,
+          null,
+          /** width */
+          // 512,
+          /** height */
+          // 512,
+          height,
+          width,
+          1,
+          'Just resize',
+          'Whole picture',
+          32,
+          'Inpaint masked',
+          // 'D:\\ai-workspace\\好声音第一集\\keyframes',
+          inputPath,
+          // 'D:\\ai-workspace\\好声音第一集\\keyframes-output',
+          outputPath,
+          '',
+          [],
+          true,
+          ['Prompt'],
+          // 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
+          promptPath,
+          'None',
+          false,
+          '',
+          0.8,
+          /** seed */
+          -1,
+          false,
+          -1,
+          0,
+          0,
+          0,
+          false,
+          false,
+          'LoRA',
+          'None',
+          1,
+          1,
+          'LoRA',
+          'None',
+          1,
+          1,
+          'LoRA',
+          'None',
+          1,
+          1,
+          'LoRA',
+          'None',
+          1,
+          1,
+          'LoRA',
+          'None',
+          1,
+          1,
+          null,
+          'Refresh models',
+          null,
+          null,
+          null,
+          '* `CFG Scale` should be 2 or lower.',
+          true,
+          true,
+          '',
+          '',
+          true,
+          50,
+          true,
+          1,
+          0,
+          false,
+          4,
+          0.5,
+          'Linear',
+          'None',
+          '<p style="margin-bottom:0.75em">Recommended settings: Sampling Steps: 80-100, Sampler: Euler a, Denoising strength: 0.8</p>',
+          128,
+          8,
+          ['left', 'right', 'up', 'down'],
+          1,
+          0.05,
+          128,
+          4,
+          'fill',
+          ['left', 'right', 'up', 'down'],
+          false,
+          false,
+          'positive',
+          'comma',
+          0,
+          false,
+          false,
+          '',
+          '<p style="margin-bottom:0.75em">Will upscale the image by the selected scale factor; use width and height sliders to set tile size</p>',
+          64,
+          'None',
+          2,
+          'Seed',
+          '',
+          [],
+          'Nothing',
+          '',
+          [],
+          'Nothing',
+          '',
+          [],
+          true,
+          false,
+          false,
+          false,
+          0,
+          false,
+          true,
+          0.5,
+          true,
+          null,
+          null,
+          false,
+          null,
+          null,
+          false,
+          null,
+          null,
+          false,
+          50,
+          [],
+          '',
+          '',
+          ''
+        ],
+        event_data: null,
+        fn_index: Image2ImageFnIndex,
+        session_hash
+      })
+    }
+
+    function handleCompleteMessage(data: SDTaskChannelData) {
+      // todo err 未处理
+      const { data: outputData } = data.output || {}
+      const resultInfo: string = outputData?.[3]
+      // console.log('outputData :>> ', outputData)
+      // console.log('resultInfo :>> ', resultInfo)
+
+      // if (resultInfo?.includes('input path is not a directory')) {
+      //   reject(new Error('input path is not a directory'))
+      // }
+
+      resolve()
     }
 
     function handleComplete() {}
