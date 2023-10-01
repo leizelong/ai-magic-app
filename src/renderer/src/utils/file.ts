@@ -1,5 +1,7 @@
 import { fs, path } from './module'
 
+const fse = require('fs-extra')
+
 export function extractFileNameWithoutExtension(filePath) {
   // 使用正则表达式匹配文件名部分
   const match = filePath.match(/[^\\\/]+$/)
@@ -49,15 +51,7 @@ export function readImage2ImageDirectory(directoryPath: string) {
     if (path.extname(filePath) === '.png') {
       // 读取文件内容并存储到Map对象中, file 0001-seed.png;
       const [keyframeId, seed] = file.replace(/(\d*)-(\d*)\.png/, '$1,$2').split(',')
-      // if (filesMap.has(keyframeId)) break
-      // if (!filesMap.has(keyframeId)) {
-      //   filesMap.set(keyframeId, )
-      // }
       filesMap.set(keyframeId, { filePath, seed })
-
-      // const fileContent = fs.readFileSync(filePath, 'utf8')
-      // const name = extractFileNameWithoutExtension(file)
-      // filesMap.set(name, fileContent)
     }
   }
 
@@ -120,4 +114,37 @@ export function copyFileToDirectory(
   fs.writeFileSync(targetFilePath, fileContent)
   console.log(`File "${sourceFilePath}" copied to "${targetFilePath}".`)
   return targetFilePath
+}
+
+export function copyDirectoryContents(sourceDirectory, targetDirectory) {
+  try {
+    // 确保目标目录存在，如果不存在则创建
+    if (!fs.existsSync(targetDirectory)) {
+      fs.mkdirSync(targetDirectory, { recursive: true })
+    }
+
+    // 获取源目录下的所有文件和子目录
+    const items = fs.readdirSync(sourceDirectory)
+
+    // 遍历所有文件和子目录
+    for (const item of items) {
+      const sourceItemPath = path.join(sourceDirectory, item)
+      const targetItemPath = path.join(targetDirectory, item)
+
+      // 检查是否是子目录
+      if (fs.statSync(sourceItemPath).isDirectory()) {
+        // 如果是子目录，递归拷贝子目录的内容
+        copyDirectoryContents(sourceItemPath, targetItemPath)
+      } else {
+        // 如果是文件，拷贝文件到目标目录
+        fse.copyFileSync(sourceItemPath, targetItemPath)
+        console.log(`Copied file "${sourceItemPath}" to "${targetItemPath}"`)
+      }
+    }
+
+    console.log(`Directory contents from "${sourceDirectory}" copied to "${targetDirectory}"`)
+  } catch (error) {
+    console.error('Error copying directory contents:', error)
+    throw error
+  }
 }

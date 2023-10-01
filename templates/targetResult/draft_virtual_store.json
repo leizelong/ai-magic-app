@@ -1,0 +1,57 @@
+{
+  "draft_materials": [],
+  "draft_virtual_store": [
+    {
+      "type": 0,
+      "value": [
+        {
+          "creation_time": 0,
+          "display_name": "",
+          "filter_type": 0,
+          "id": "",
+          "import_time": 0,
+          "import_time_us": 0,
+          "sort_sub_type": 0,
+          "sort_type": 0
+        },
+        {
+          "creation_time": 1695539437,
+          "display_name": "keyframes-upscale",
+          "filter_type": 0,
+          "id": "61f43fc5-f309-4fab-abe3-aa0739236881",
+          "import_time": 1696169178,
+          "import_time_us": 1696169172885976,
+          "sort_sub_type": 0,
+          "sort_type": 0
+        }
+      ]
+    },
+    {
+      "type": 1,
+      "value": [
+        { "child_id": "61f43fc5-f309-4fab-abe3-aa0739236881", "parent_id": "" },
+        {
+          "child_id": "122b2742-6959-4d8c-b0ce-416aa6437b29",
+          "parent_id": "61f43fc5-f309-4fab-abe3-aa0739236881"
+        },
+        {
+          "child_id": "cedd5326-569c-418d-95a2-481ca6944887",
+          "parent_id": "61f43fc5-f309-4fab-abe3-aa0739236881"
+        },
+        {
+          "child_id": "b546b18c-36d2-48b8-84d6-d7d976f2da23",
+          "parent_id": "61f43fc5-f309-4fab-abe3-aa0739236881"
+        },
+        {
+          "child_id": "b80d721b-ad1d-4288-9baf-259af819c716",
+          "parent_id": "61f43fc5-f309-4fab-abe3-aa0739236881"
+        },
+        {
+          "child_id": "526df8eb-24e8-4b4c-897d-8c753776d0d3",
+          "parent_id": "61f43fc5-f309-4fab-abe3-aa0739236881"
+        }
+      ]
+    },
+    { "type": 2, "value": [] }
+  ]
+}

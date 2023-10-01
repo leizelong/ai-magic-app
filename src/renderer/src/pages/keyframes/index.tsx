@@ -6,9 +6,8 @@ import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputN
 const { Dragger } = Upload
 import './index.scss'
 import { exec, generateHash } from '@renderer/utils/tool'
-import { FrameResult, generateKeyframes, getFrames, getKeyframesPaths } from '@renderer/utils/frame'
+import { FrameResult, generateKeyframes, getFrames, getKeyFramesInfo, getKeyframesPaths } from '@renderer/utils/frame'
 import { LocalImage } from '@renderer/components/LocalImage'
-import { webSocket } from 'rxjs/webSocket'
 import {
   SDTaskChannelData,
   createBatchImage2ImageTask,
@@ -23,6 +22,7 @@ import {
   readTxtFilesInDirectory
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
+import { combineJianYingVideo } from '@renderer/utils/jianYing'
 
 interface FormValue {
   keyframesOutputPath: string
@@ -203,6 +203,13 @@ export function KeyframesPage() {
     }
   }
 
+  async function handleCombineVideo() {
+    const { videoPath } = await form.validateFields()
+    const keyframeList = await getKeyFramesInfo(videoPath)
+    console.log('keyframeList :>> ', keyframeList);
+    // combineJianYingVideo()
+  }
+
   function renderListItem(item: KeyframeDto, index: number) {
     const { filePath, prompt, img2imgLoading, img2imgOutputFilePath } = item
 
@@ -336,7 +343,9 @@ export function KeyframesPage() {
 
         <Button>批量高清</Button>
 
-        <Button>剪映合成</Button>
+        <Button type="primary" onClick={handleCombineVideo}>
+          剪映合成
+        </Button>
 
         <Button>自动补齐帧</Button>
       </Space>

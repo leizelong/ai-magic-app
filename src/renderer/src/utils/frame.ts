@@ -32,6 +32,13 @@ export async function getFrames(filePath: string) {
   )
 }
 
+export async function getKeyFramesInfo(filePath: string) {
+  const frameRes = await getFrames(filePath)
+
+  const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
+  return keyFrames
+}
+
 export async function getKeyframesPaths(dirPath: string) {
   return new Promise<string[]>((resolve, reject) => {
     try {
