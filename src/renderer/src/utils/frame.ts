@@ -18,7 +18,7 @@ export interface FrameDto {
 
 export function generateKeyframes(targetPath: string, outputPath: string): any {
   return exec(
-    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,I)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%04d.png`
+    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,I)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
   )
 }
 

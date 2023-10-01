@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
-import { Button, Form, Input, message, Space, Upload, FormInstance, List } from 'antd'
+import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputNumber } from 'antd'
 
 const { Dragger } = Upload
 import './index.scss'
@@ -12,26 +12,36 @@ import { webSocket } from 'rxjs/webSocket'
 import {
   SDTaskChannelData,
   createBatchImage2ImageTask,
+  createImage2ImageTask,
   createTaggerTask
 } from '@renderer/utils/sdApi'
 import {
+  copyFileToDirectory,
   extractFileNameWithoutExtension,
+  readFileToBase64,
   readImage2ImageDirectory,
   readTxtFilesInDirectory
 } from '@renderer/utils/file'
+import { autoUpdateId } from '@renderer/hooks'
 
 interface FormValue {
   keyframesOutputPath: string
   videoPath: string
   taggerOutputPath: string
   image2ImageOutputPath: string
+  randomSeed?: string
+  redrawFactor?: number
 }
 
 interface KeyframeDto {
   name?: string
   filePath: string
-  prompts?: string
-  image2ImageFilePath?: string
+  prompt?: string
+  // image2ImageFilesPath?: string[]
+  // img2imgFilePath?: string
+  img2imgLoading?: boolean
+  img2imgOutputFilePath?: string
+  seed?: string
 }
 
 export function KeyframesPage() {
@@ -39,11 +49,19 @@ export function KeyframesPage() {
 
   const [keyFramesLoading, setKeyframesLoading] = useState(false)
 
+  const [img2imgLoading, setImg2ImgLoading] = useState(false)
+
+  const [taggerLoading, setTaggerLoading] = useState(false)
+
+  const forceUpdate = autoUpdateId()
+
   const [keyframesDataSource, setKeyframesDataSource] = useState<KeyframeDto[]>([])
 
   const videoPath = Form.useWatch('videoPath', form)
 
   const initialValues: Partial<FormValue> = {
+    // randomSeed: '-1',
+    redrawFactor: 0.7,
     keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     videoPath: 'D:\\ai-workspace\\好声音第一集\\01-noart-10s.mp4',
     taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -55,7 +73,6 @@ export function KeyframesPage() {
     multiple: false,
     maxCount: 1,
     beforeUpload(file, fileList) {
-      // console.log('beforeUpload :>> ', file, fileList)
       return false
     },
     onChange({ file, fileList }) {
@@ -64,34 +81,31 @@ export function KeyframesPage() {
     }
   }
 
-  async function initKeyframesData() {
+  async function updateKeyframesData() {
     const values = await form.validateFields()
     const { videoPath, keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } = values
-    console.log('initKeyframesData values :>> ', values)
     const filePaths = await getKeyframesPaths(keyframesOutputPath)
     const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
     const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
 
-    console.log('promptsMap :>> ', promptsMap)
-    console.log('image2ImageOutputMap :>> ', image2ImageOutputMap)
-
-    const data = filePaths.map((filePath) => {
+    const data: KeyframeDto[] = filePaths.map((filePath) => {
       const name = extractFileNameWithoutExtension(filePath)
-      const prompts = promptsMap.get(name)
+      const prompt = promptsMap.get(name)
+      const { seed, filePath: img2imgOutputFilePath } = image2ImageOutputMap.get(name) || {}
+
       return {
         filePath,
         name,
-        prompts,
-        image2ImageFilePath: image2ImageOutputMap.get(name)
+        prompt,
+        seed,
+        img2imgOutputFilePath
       }
     })
     setKeyframesDataSource(data)
   }
 
   useEffect(() => {
-    setTimeout(() => {
-      initKeyframesData()
-    }, 1000)
+    updateKeyframesData()
   }, [])
 
   async function handleGenerate() {
@@ -104,7 +118,7 @@ export function KeyframesPage() {
       // const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
 
       await generateKeyframes(videoPath, keyframesOutputPath)
-      await initKeyframesData()
+      await updateKeyframesData()
 
       message.success('生成关键帧成功')
     } catch (error: any) {
@@ -112,57 +126,144 @@ export function KeyframesPage() {
     } finally {
       setKeyframesLoading(false)
     }
-
-    // const fileObj = new File()
   }
 
   async function handleTaggerPrompts() {
     const values = await form.validateFields()
     const { keyframesOutputPath, taggerOutputPath } = values
-    await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
 
-    message.success('反推关键词成功')
+    try {
+      setTaggerLoading(true)
+      await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
 
-    const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
-    let nextKeyframes = [...keyframesDataSource]
-    nextKeyframes = nextKeyframes.map((keyframe) => {
-      const { name } = keyframe
-      if (!name) return keyframe
-      const prompts = promptsMap.get(name)
-      return { ...keyframe, prompts }
-    })
-    setKeyframesDataSource(nextKeyframes)
+      message.success('反推关键词成功')
+      await updateKeyframesData()
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setTaggerLoading(false)
+    }
   }
 
   async function handleBatchImage2Image() {
-    const values = await form.validateFields()
-    const { keyframesOutputPath, image2ImageOutputPath, taggerOutputPath } = values
-
-    await createBatchImage2ImageTask({
-      inputPath: keyframesOutputPath,
-      outputPath: image2ImageOutputPath,
-      promptPath: taggerOutputPath
-    })
+    try {
+      setImg2ImgLoading(true)
+      for (let index = 0; index < keyframesDataSource.length; index++) {
+        const keyframe = keyframesDataSource[index]
+        await handleImg2Img(keyframe, index)
+      }
+      message.success('批量图生图成功')
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setImg2ImgLoading(false)
+    }
   }
 
-  function renderListItem(item: KeyframeDto) {
-    const { filePath, prompts, image2ImageFilePath } = item
+  async function handleUseSeed(item: KeyframeDto, index: number) {
+    const { seed } = item
+    if (!seed) {
+      message.error('no seed')
+      return
+    }
+    form.setFieldValue('randomSeed', seed)
+  }
+
+  async function handleImg2Img(item: KeyframeDto, index: number) {
+    const values = await form.validateFields()
+    const { image2ImageOutputPath, randomSeed, redrawFactor } = values
+    const { prompt = '', filePath, name } = item
+    const imgBase64 = readFileToBase64(filePath)
+    try {
+      keyframesDataSource[index].img2imgLoading = true
+      keyframesDataSource[index].img2imgOutputFilePath = ''
+      forceUpdate()
+      const [img2imgOutputFilePath, seed] = await createImage2ImageTask({
+        prompt,
+        imgBase64,
+        redraw: redrawFactor,
+        seed: randomSeed
+      })
+
+      keyframesDataSource[index].img2imgOutputFilePath = img2imgOutputFilePath
+      const targetFilePath = copyFileToDirectory(
+        img2imgOutputFilePath,
+        image2ImageOutputPath,
+        `${name}-${seed}.png`
+      )
+      keyframesDataSource[index].seed = seed
+      keyframesDataSource[index].img2imgOutputFilePath = targetFilePath
+
+      message.success('图生图成功')
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      keyframesDataSource[index].img2imgLoading = false
+      forceUpdate()
+    }
+  }
+
+  function renderListItem(item: KeyframeDto, index: number) {
+    const { filePath, prompt, img2imgLoading, img2imgOutputFilePath } = item
+
     return (
       <List.Item>
         <Space size="large">
           <LocalImage className="keyframe_image" filePath={filePath}></LocalImage>
 
           <Input.TextArea
-            value={prompts}
+            value={prompt}
             style={{ width: 300, height: '100%' }}
             autoSize={{ minRows: 8, maxRows: 8 }}
           ></Input.TextArea>
 
           <Space direction="vertical">
-            <Button type="primary">图生图</Button>
+            <Button
+              type="primary"
+              onClick={() => handleImg2Img(item, index)}
+              loading={img2imgLoading}
+            >
+              图生图
+            </Button>
+            <Button type="primary" onClick={() => handleUseSeed(item, index)}>
+              采用种子
+            </Button>
           </Space>
 
-          <LocalImage className="image2image" filePath={image2ImageFilePath}></LocalImage>
+          <Space direction="horizontal">
+            {/* {img2imgOutputFilePath ? (
+              <LocalImage
+                key={img2imgOutputFilePath}
+                className="keyframe_image"
+                filePath={img2imgOutputFilePath}
+              ></LocalImage>
+            ) : (
+              image2ImageFilesPath?.map((filePath) => {
+                return (
+                  <LocalImage
+                    key={filePath}
+                    className="keyframe_image"
+                    filePath={filePath}
+                  ></LocalImage>
+                )
+              })
+            )} */}
+            <LocalImage
+              // key={filePath}
+              className="keyframe_image"
+              filePath={img2imgOutputFilePath}
+            ></LocalImage>
+            {/* {image2ImageFilesPath?.map((filePath, idx) => {
+              return (
+                <LocalImage
+                  // key={filePath}
+                  key={`idx${idx}`}
+                  className="keyframe_image"
+                  filePath={filePath}
+                ></LocalImage>
+              )
+            })} */}
+          </Space>
         </Space>
       </List.Item>
     )
@@ -203,18 +304,41 @@ export function KeyframesPage() {
         >
           <Input></Input>
         </Form.Item>
+
+        <Form.Item name="randomSeed" label="采样种子">
+          <InputNumber disabled style={{ width: 150 }}></InputNumber>
+        </Form.Item>
+        <Form.Item
+          name="redrawFactor"
+          label="重绘系数"
+          rules={[{ required: true, message: '重绘系数必填' }]}
+        >
+          <InputNumber
+            style={{ width: 150 }}
+            min={0.1}
+            max={1}
+            precision={1}
+            step={0.1}
+          ></InputNumber>
+        </Form.Item>
       </Form>
 
       <Space direction="horizontal" style={{ marginBottom: 24 }}>
         <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
           生成关键帧
         </Button>
-        <Button type="primary" onClick={handleTaggerPrompts}>
+        <Button type="primary" onClick={handleTaggerPrompts} loading={taggerLoading}>
           一键反推提示词
         </Button>
-        <Button type="primary" onClick={handleBatchImage2Image}>
+        <Button type="primary" onClick={handleBatchImage2Image} loading={img2imgLoading}>
           一键图生图
         </Button>
+
+        <Button>批量高清</Button>
+
+        <Button>剪映合成</Button>
+
+        <Button>自动补齐帧</Button>
       </Space>
 
       <List

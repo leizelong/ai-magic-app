@@ -1,4 +1,5 @@
 import MD5 from 'crypto-js/md5'
+import { fs } from './module'
 
 type ExecOptions = Parameters<typeof window.api.child_process.exec>[1]
 
@@ -6,17 +7,12 @@ type ExecConfig = {
   json?: boolean
 }
 
-const api = window.api
-
 export function exec<T = any>(cmd: string, options?: ExecOptions, config?: ExecConfig) {
   return new Promise<T>((resolve, reject) => {
     window.api.child_process.exec(cmd, options, (err, stdout, stderr) => {
       if (err) {
         reject(err)
       }
-      // if (stderr) {
-      //   console.log(`${cmd} stderr :>>`, stderr)
-      // }
 
       try {
         // const info = JSON.parse(stdout.toString())
@@ -41,7 +37,7 @@ type ReadFileOptions = Parameters<typeof window.api.fs.readFile>[0]
 
 export function readFile(filePath: string, options?: any) {
   return new Promise<Buffer>((resolve, reject) => {
-    window.api.fs.readFile(filePath, options, (err, data) => {
+    fs.readFile(filePath, options, (err, data) => {
       if (err) {
         reject(err)
       }
@@ -64,8 +60,8 @@ function blobToBase64(blob: Blob) {
   })
 }
 
-export async function fileToUrl(filePath: string) {
-  const buffer = await readFile(filePath)
+export function fileToUrl(filePath: string) {
+  const buffer = fs.readFileSync(filePath)
   const blob = new Blob([buffer], { type: 'image/png' })
   // console.log('blob :>> ', blob);
   const url = URL.createObjectURL(blob)
@@ -86,4 +82,13 @@ export function generateHash(input: string, length = 11): string {
   const truncatedHash = hash.slice(0, length)
 
   return truncatedHash
+}
+
+export function generateRandomNumber(length = 10) {
+  let randomNumber = ''
+  for (let i = 0; i < length; i++) {
+    randomNumber += Math.floor(Math.random() * 10) // 生成随机数字并拼接到结果字符串
+  }
+
+  return randomNumber
 }
