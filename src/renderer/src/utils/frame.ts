@@ -1,5 +1,6 @@
+import { listFilesInDirectory } from './file'
 import { fs, path } from './module'
-import { exec } from './tool'
+import { exec, getVideoDuration } from './tool'
 
 export type FrameResult = {
   frames: FrameDto[]
@@ -32,11 +33,61 @@ export async function getFrames(filePath: string) {
   )
 }
 
-export async function getKeyFramesInfo(filePath: string) {
-  const frameRes = await getFrames(filePath)
+export interface DraftKeyFrameDto {
+  fileName: string
+  filePath: string
+  start: number
+  duration: number
+}
 
+export async function getKeyFramesInfo(
+  videoPath: string,
+  keyFramesDir: string
+): Promise<{
+  keyFrameList: DraftKeyFrameDto[]
+  videoInfo: {
+    duration: number
+  }
+}> {
+  const frameRes = await getFrames(videoPath)
+  const videoDurationS = await getVideoDuration(videoPath)
+  const videoDuration = Number((videoDurationS * 1000 * 1000).toFixed(0))
+
+  const filesInfo = listFilesInDirectory(keyFramesDir)
   const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
-  return keyFrames
+  const videoInfo = {
+    duration: videoDuration
+  }
+
+  const keyFrameList: DraftKeyFrameDto[] = []
+  let preFrameTimeStamp = 0
+  for (let index = 0; index < keyFrames.length; index++) {
+    const keyFrame = keyFrames[index]
+    const { fileName, filePath } = filesInfo[index] || {}
+    const { pkt_dts_time } = keyFrame
+    const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
+
+    const duration = curFrameTimeStamp - preFrameTimeStamp
+    preFrameTimeStamp = curFrameTimeStamp
+
+    keyFrameList.push({
+      // ...keyFrame,
+      fileName,
+      filePath,
+      start: curFrameTimeStamp,
+      duration: 0
+    })
+
+    if (index > 0) {
+      keyFrameList[index - 1].duration = duration
+    }
+
+    if (index === keyFrames.length - 1) {
+      keyFrameList[index].duration = videoDuration - curFrameTimeStamp
+    }
+  }
+
+  return { keyFrameList, videoInfo }
 }
 
 export async function getKeyframesPaths(dirPath: string) {

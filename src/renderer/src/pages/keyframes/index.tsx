@@ -6,7 +6,13 @@ import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputN
 const { Dragger } = Upload
 import './index.scss'
 import { exec, generateHash } from '@renderer/utils/tool'
-import { FrameResult, generateKeyframes, getFrames, getKeyFramesInfo, getKeyframesPaths } from '@renderer/utils/frame'
+import {
+  FrameResult,
+  generateKeyframes,
+  getFrames,
+  getKeyFramesInfo,
+  getKeyframesPaths
+} from '@renderer/utils/frame'
 import { LocalImage } from '@renderer/components/LocalImage'
 import {
   SDTaskChannelData,
@@ -204,10 +210,9 @@ export function KeyframesPage() {
   }
 
   async function handleCombineVideo() {
-    const { videoPath } = await form.validateFields()
-    const keyframeList = await getKeyFramesInfo(videoPath)
-    console.log('keyframeList :>> ', keyframeList);
-    // combineJianYingVideo()
+    const { videoPath, image2ImageOutputPath } = await form.validateFields()
+    const { keyFrameList, videoInfo } = await getKeyFramesInfo(videoPath, image2ImageOutputPath)
+    combineJianYingVideo({ keyFrameList, videoInfo })
   }
 
   function renderListItem(item: KeyframeDto, index: number) {

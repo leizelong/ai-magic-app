@@ -142,9 +142,48 @@ export function copyDirectoryContents(sourceDirectory, targetDirectory) {
       }
     }
 
-    console.log(`Directory contents from "${sourceDirectory}" copied to "${targetDirectory}"`)
+    // console.log(`Directory contents from "${sourceDirectory}" copied to "${targetDirectory}"`)
   } catch (error) {
     console.error('Error copying directory contents:', error)
+    throw error
+  }
+}
+
+export function listFilesInDirectory(directoryPath: string) {
+  try {
+    // 读取目录中的所有文件和子文件夹
+    const filesAndFolders = fs.readdirSync(directoryPath)
+
+    // 过滤出文件
+    const files = filesAndFolders.filter((item) => {
+      const itemPath = path.join(directoryPath, item)
+      return fs.statSync(itemPath).isFile()
+    })
+
+    // 获取文件名和绝对路径
+    const fileDetails = files.map((file) => ({
+      fileName: file,
+      filePath: path.join(directoryPath, file)
+    }))
+
+    return fileDetails
+  } catch (error: any) {
+    console.error(`无法读取目录 ${directoryPath}: ${error.message}`)
+    throw error
+  }
+}
+
+export function writeJsonConfigToFile(config: any, filePath: string) {
+  try {
+    // 将配置对象转换为 JSON 字符串
+    const configJson = JSON.stringify(config, null, 2)
+
+    // 将 JSON 字符串写入到目标文件
+    fs.writeFileSync(filePath, configJson, 'utf8')
+
+    console.log(`配置已成功写入到文件：${filePath}`);
+  } catch (error: any) {
+    console.error(`写入文件失败：${error.message}`)
     throw error
   }
 }

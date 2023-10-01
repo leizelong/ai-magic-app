@@ -10,22 +10,29 @@
 // import { app } from 'electron'
 import { generateDraftContent, generateDraftMetaInfo } from './JianYingDraft'
 import { copyDirectoryContents } from './file'
+import { DraftKeyFrameDto } from './frame'
 import { path } from './module'
-
-
 
 const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
 const projectRootDirectory = process.env.INIT_CWD || ''
 const JianYingTemplateDir = path.join(projectRootDirectory, 'templates', 'JianYingDraft')
 
+interface CombineJianYingVideoDto {
+  keyFrameList: DraftKeyFrameDto[]
+  videoInfo: {
+    duration: number
+  }
+}
 
-export function combineJianYingVideo() {
+export function combineJianYingVideo(options: CombineJianYingVideoDto) {
+  const { keyFrameList, videoInfo } = options
   const draftProjectName = 'test'
   // todo 考虑重名
   const draftProjectDir = path.join(JianYingAppDraftsDir, draftProjectName)
   // step1
   copyDirectoryContents(JianYingTemplateDir, draftProjectDir)
   // step2
-  generateDraftContent()
+  generateDraftContent({ keyFrameList, draftProjectDir, videoInfo })
+
   generateDraftMetaInfo()
 }

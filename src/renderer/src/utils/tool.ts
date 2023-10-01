@@ -101,3 +101,19 @@ export function generateUUID() {
   })
   return uuid
 }
+
+
+const ffmpeg = require('fluent-ffmpeg');
+
+export function getVideoDuration(videoPath) {
+  return new Promise<number>((resolve, reject) => {
+    ffmpeg.ffprobe(videoPath, (err, metadata) => {
+      if (err) {
+        reject(err);
+      } else {
+        const durationInSeconds = metadata.format.duration;
+        resolve(durationInSeconds);
+      }
+    });
+  });
+}
