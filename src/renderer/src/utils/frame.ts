@@ -1,4 +1,4 @@
-import { listFilesInDirectory } from './file'
+import { checkAndCreateDirectory, listFilesInDirectory } from './file'
 import { fs, path } from './module'
 import { exec } from './tool'
 import { getVideoDuration } from './ffmpeg'
@@ -18,7 +18,11 @@ export interface FrameDto {
   pkt_dts_time: string
 }
 
-export function generateKeyframes(targetPath: string, outputPath: string): any {
+export function generateKeyframes(targetPath: string, outputPath: string) {
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`${targetPath} does not exist`)
+  }
+  checkAndCreateDirectory(outputPath)
   return exec(
     `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,I)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
   )
@@ -99,6 +103,9 @@ export async function getKeyFramesInfo(
 export async function getKeyframesPaths(dirPath: string) {
   return new Promise<string[]>((resolve, reject) => {
     try {
+      if (!fs.existsSync(dirPath)) {
+        reject(new Error(`directory "${dirPath}" does not exist`))
+      }
       const files = fs.readdirSync(dirPath)
       const filePaths = files.map((file) => {
         return path.join(dirPath, file)

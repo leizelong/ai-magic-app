@@ -18,6 +18,9 @@ export function extractFileNameWithoutExtension(filePath) {
 
 export function readTxtFilesInDirectory(directoryPath: string) {
   const filesMap = new Map<string, string>()
+  if (!fs.existsSync(directoryPath)) {
+    return filesMap
+  }
 
   // 读取目录中的文件列表
   const files = fs.readdirSync(directoryPath)
@@ -40,6 +43,9 @@ export function readTxtFilesInDirectory(directoryPath: string) {
 export function readImage2ImageDirectory(directoryPath: string) {
   const filesMap = new Map<string, { filePath: string; seed: string }>()
 
+  if (!fs.existsSync(directoryPath)) {
+    return filesMap
+  }
   // 读取目录中的文件列表
   const files = fs.readdirSync(directoryPath)
 
@@ -98,7 +104,7 @@ export function copyFileToDirectory(
 
   // 如果提供了新文件名，则使用它，否则使用源文件名
   const targetFileName = newFileName || sourceFileName
-
+  checkAndCreateDirectory(targetDirectory)
   // 构建目标文件的完整路径
   const targetFilePath = path.join(targetDirectory, targetFileName)
 
@@ -138,10 +144,8 @@ export function copyDirectoryContents(sourceDirectory, targetDirectory) {
       } else {
         // 如果是文件，拷贝文件到目标目录
         fse.copyFileSync(sourceItemPath, targetItemPath)
-        console.log(`Copied file "${sourceItemPath}" to "${targetItemPath}"`)
       }
     }
-
   } catch (error) {
     console.error('Error copying directory contents:', error)
     throw error
@@ -187,6 +191,29 @@ export function writeJsonConfigToFile(config: any, filePath: string) {
   }
 }
 
-function getDirectoryFromFilePath(filePath) {
-  return path.basename(path.dirname(filePath));
+export function deleteFileAsync(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error(`删除文件失败: ${err}`)
+        reject(err)
+      } else {
+        console.log(`文件已成功删除: ${filePath}`)
+        resolve(filePath)
+      }
+    })
+  })
+}
+
+export function checkAndCreateDirectory(directoryPath: string) {
+  if (!fs.existsSync(directoryPath)) {
+    try {
+      fs.mkdirSync(directoryPath, { recursive: true }) // 使用 recursive 选项来创建多级目录
+      console.log(`目录已成功创建: ${directoryPath}`)
+    } catch (err) {
+      console.error(`创建目录失败: ${err}`)
+    }
+  } else {
+    console.log(`目录已存在: ${directoryPath}`)
+  }
 }

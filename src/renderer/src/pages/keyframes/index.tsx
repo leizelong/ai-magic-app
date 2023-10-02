@@ -22,6 +22,7 @@ import {
 } from '@renderer/utils/sdApi'
 import {
   copyFileToDirectory,
+  deleteFileAsync,
   extractFileNameWithoutExtension,
   readFileToBase64,
   readImage2ImageDirectory,
@@ -29,14 +30,24 @@ import {
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
-
+import { path } from '@renderer/utils/module'
 interface FormValue {
+  // keyframesOutputPath: string
+  // videoPath: string
+  // taggerOutputPath: string
+  // image2ImageOutputPath: string
+  // image2ImageHighOutputPath: string
+  randomSeed?: string
+  redrawFactor?: number
+  projectDirectoryPath: string
+}
+
+interface ProjectAllDirectory {
   keyframesOutputPath: string
   videoPath: string
   taggerOutputPath: string
   image2ImageOutputPath: string
-  randomSeed?: string
-  redrawFactor?: number
+  image2ImageHighOutputPath: string
 }
 
 interface KeyframeDto {
@@ -59,19 +70,39 @@ export function KeyframesPage() {
 
   const [taggerLoading, setTaggerLoading] = useState(false)
 
+  const [combineLoading, setCombineLoading] = useState(false)
+
   const forceUpdate = autoUpdateId()
 
   const [keyframesDataSource, setKeyframesDataSource] = useState<KeyframeDto[]>([])
 
-  const videoPath = Form.useWatch('videoPath', form)
+  // const videoPath = Form.useWatch('videoPath', form)
 
   const initialValues: Partial<FormValue> = {
-    // randomSeed: '-1',
     redrawFactor: 0.7,
-    keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
-    videoPath: 'D:\\ai-workspace\\好声音第一集\\01-noart-10s.mp4',
-    taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
-    image2ImageOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-output'
+    projectDirectoryPath: 'D:\\ai-workspace\\带某子逗阵'
+    // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
+    // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
+    // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
+    // image2ImageOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-output',
+    // image2ImageHighOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-upscale'
+  }
+
+  async function getProjectAllPaths(): Promise<ProjectAllDirectory> {
+    const { projectDirectoryPath } = await form.validateFields()
+    const videoPath = path.join(projectDirectoryPath, 'origin.mp4')
+    const keyframesOutputPath = path.join(projectDirectoryPath, 'keyframes')
+    const taggerOutputPath = path.join(projectDirectoryPath, 'keyframes-tagger')
+    const image2ImageOutputPath = path.join(projectDirectoryPath, 'keyframes-output')
+    const image2ImageHighOutputPath = path.join(projectDirectoryPath, 'keyframes-upscale')
+
+    return {
+      videoPath,
+      keyframesOutputPath,
+      taggerOutputPath,
+      image2ImageOutputPath,
+      image2ImageHighOutputPath
+    }
   }
 
   const draggerProps: UploadProps = {
@@ -88,8 +119,9 @@ export function KeyframesPage() {
   }
 
   async function updateKeyframesData() {
-    const values = await form.validateFields()
-    const { videoPath, keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } = values
+    const { keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } =
+      await getProjectAllPaths()
+
     const filePaths = await getKeyframesPaths(keyframesOutputPath)
     const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
     const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
@@ -117,11 +149,7 @@ export function KeyframesPage() {
   async function handleGenerate() {
     setKeyframesLoading(true)
     try {
-      const values = await form.validateFields()
-      const { videoPath, keyframesOutputPath } = values
-      // const frameRes = await getFrames(videoPath)
-
-      // const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
+      const { videoPath, keyframesOutputPath } = await getProjectAllPaths()
 
       await generateKeyframes(videoPath, keyframesOutputPath)
       await updateKeyframesData()
@@ -135,8 +163,7 @@ export function KeyframesPage() {
   }
 
   async function handleTaggerPrompts() {
-    const values = await form.validateFields()
-    const { keyframesOutputPath, taggerOutputPath } = values
+    const { keyframesOutputPath, taggerOutputPath } = await getProjectAllPaths()
 
     try {
       setTaggerLoading(true)
@@ -177,10 +204,16 @@ export function KeyframesPage() {
 
   async function handleImg2Img(item: KeyframeDto, index: number) {
     const values = await form.validateFields()
-    const { image2ImageOutputPath, randomSeed, redrawFactor } = values
+    const { image2ImageOutputPath } = await getProjectAllPaths()
+    const { randomSeed, redrawFactor } = values
+
     const { prompt = '', filePath, name } = item
     const imgBase64 = readFileToBase64(filePath)
     try {
+      if (!randomSeed && keyframesDataSource[index].img2imgOutputFilePath) {
+        // delete 原图
+        await deleteFileAsync(keyframesDataSource[index].img2imgOutputFilePath)
+      }
       keyframesDataSource[index].img2imgLoading = true
       keyframesDataSource[index].img2imgOutputFilePath = ''
       forceUpdate()
@@ -210,9 +243,21 @@ export function KeyframesPage() {
   }
 
   async function handleCombineVideo() {
-    const { videoPath, image2ImageOutputPath } = await form.validateFields()
-    const { keyFrameList, videoInfo } = await getKeyFramesInfo(videoPath, image2ImageOutputPath)
-    combineJianYingVideo({ keyFrameList, videoInfo })
+    const { videoPath, image2ImageHighOutputPath } = await getProjectAllPaths()
+    try {
+      setCombineLoading(true)
+      const { keyFrameList, videoInfo } = await getKeyFramesInfo(
+        videoPath,
+        image2ImageHighOutputPath
+      )
+      // todo 检测草稿是否存在，提示是否覆盖
+      combineJianYingVideo({ keyFrameList, videoInfo })
+      message.success('剪映草稿视频合成成功')
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setCombineLoading(false)
+    }
   }
 
   function renderListItem(item: KeyframeDto, index: number) {
@@ -221,6 +266,9 @@ export function KeyframesPage() {
     return (
       <List.Item>
         <Space size="large">
+          <Space direction="vertical">
+            <div style={{ fontSize: 16 }}>{index + 1}</div>
+          </Space>
           <LocalImage className="keyframe_image" filePath={filePath}></LocalImage>
 
           <Input.TextArea
@@ -243,38 +291,7 @@ export function KeyframesPage() {
           </Space>
 
           <Space direction="horizontal">
-            {/* {img2imgOutputFilePath ? (
-              <LocalImage
-                key={img2imgOutputFilePath}
-                className="keyframe_image"
-                filePath={img2imgOutputFilePath}
-              ></LocalImage>
-            ) : (
-              image2ImageFilesPath?.map((filePath) => {
-                return (
-                  <LocalImage
-                    key={filePath}
-                    className="keyframe_image"
-                    filePath={filePath}
-                  ></LocalImage>
-                )
-              })
-            )} */}
-            <LocalImage
-              // key={filePath}
-              className="keyframe_image"
-              filePath={img2imgOutputFilePath}
-            ></LocalImage>
-            {/* {image2ImageFilesPath?.map((filePath, idx) => {
-              return (
-                <LocalImage
-                  // key={filePath}
-                  key={`idx${idx}`}
-                  className="keyframe_image"
-                  filePath={filePath}
-                ></LocalImage>
-              )
-            })} */}
+            <LocalImage className="keyframe_image" filePath={img2imgOutputFilePath}></LocalImage>
           </Space>
         </Space>
       </List.Item>
@@ -284,7 +301,14 @@ export function KeyframesPage() {
   return (
     <div className="keyframes-page">
       <Form colon form={form} initialValues={initialValues}>
-        <Form.Item name="videoPath" rules={[{ required: true, message: '请上传视频' }]}>
+        <Form.Item
+          name="projectDirectoryPath"
+          label="项目工程目录"
+          rules={[{ required: true, message: '项目工程目录必填' }]}
+        >
+          <Input></Input>
+        </Form.Item>
+        {/* <Form.Item name="videoPath" rules={[{ required: true, message: '请上传视频' }]}>
           <Dragger {...draggerProps}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
@@ -292,7 +316,9 @@ export function KeyframesPage() {
             <p className="ant-upload-text">点击，或者拖动文件上传视频</p>
             <p className="ant-upload-hint">{videoPath}</p>
           </Dragger>
-        </Form.Item>
+        </Form.Item> */}
+
+        {/*
 
         <Form.Item
           name="keyframesOutputPath"
@@ -316,6 +342,13 @@ export function KeyframesPage() {
         >
           <Input></Input>
         </Form.Item>
+        <Form.Item
+          name="image2ImageHighOutputPath"
+          label="高清修复生成目录"
+          rules={[{ required: true, message: '高清修复生成目录必填' }]}
+        >
+          <Input></Input>
+        </Form.Item> */}
 
         <Form.Item name="randomSeed" label="采样种子">
           <InputNumber disabled style={{ width: 150 }}></InputNumber>
@@ -348,7 +381,7 @@ export function KeyframesPage() {
 
         <Button>批量高清</Button>
 
-        <Button type="primary" onClick={handleCombineVideo}>
+        <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
           剪映合成
         </Button>
 
