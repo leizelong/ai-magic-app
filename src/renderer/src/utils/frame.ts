@@ -1,6 +1,7 @@
 import { listFilesInDirectory } from './file'
 import { fs, path } from './module'
-import { exec, getVideoDuration } from './tool'
+import { exec } from './tool'
+import { getVideoDuration } from './ffmpeg'
 
 export type FrameResult = {
   frames: FrameDto[]
@@ -47,6 +48,8 @@ export async function getKeyFramesInfo(
   keyFrameList: DraftKeyFrameDto[]
   videoInfo: {
     duration: number
+    filePath: string
+    fileName: string
   }
 }> {
   const frameRes = await getFrames(videoPath)
@@ -55,8 +58,11 @@ export async function getKeyFramesInfo(
 
   const filesInfo = listFilesInDirectory(keyFramesDir)
   const keyFrames = frameRes?.frames?.filter((frame) => !!frame.key_frame)
+
   const videoInfo = {
-    duration: videoDuration
+    duration: videoDuration,
+    filePath: videoPath,
+    fileName: path.basename(videoPath)
   }
 
   const keyFrameList: DraftKeyFrameDto[] = []

@@ -89,8 +89,6 @@ export function createTaggerTask(data: TaggerTaskDto) {
       // todo err 未处理
       const { data: outputData } = data.output || {}
       const resultInfo: string = outputData?.[3]
-      // console.log('outputData :>> ', outputData)
-      // console.log('resultInfo :>> ', resultInfo)
 
       if (resultInfo?.includes('input path is not a directory')) {
         reject(new Error('input path is not a directory'))
@@ -100,11 +98,9 @@ export function createTaggerTask(data: TaggerTaskDto) {
     }
 
     function handleComplete() {
-      // console.log('complete')
     }
 
     function handleError(err) {
-      // console.log(err)
       reject(err)
     }
 
@@ -586,8 +582,6 @@ export function createBatchImage2ImageTask(data: BatchImage2ImageTaskDto) {
       // todo err 未处理
       const { data: outputData } = data.output || {}
       const resultInfo: string = outputData?.[3]
-      // console.log('outputData :>> ', outputData)
-      // console.log('resultInfo :>> ', resultInfo)
 
       // if (resultInfo?.includes('input path is not a directory')) {
       //   reject(new Error('input path is not a directory'))

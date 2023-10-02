@@ -142,7 +142,6 @@ export function copyDirectoryContents(sourceDirectory, targetDirectory) {
       }
     }
 
-    // console.log(`Directory contents from "${sourceDirectory}" copied to "${targetDirectory}"`)
   } catch (error) {
     console.error('Error copying directory contents:', error)
     throw error
@@ -181,9 +180,13 @@ export function writeJsonConfigToFile(config: any, filePath: string) {
     // 将 JSON 字符串写入到目标文件
     fs.writeFileSync(filePath, configJson, 'utf8')
 
-    console.log(`配置已成功写入到文件：${filePath}`);
+    console.log(`配置已成功写入到文件：${filePath}`)
   } catch (error: any) {
     console.error(`写入文件失败：${error.message}`)
     throw error
   }
+}
+
+function getDirectoryFromFilePath(filePath) {
+  return path.basename(path.dirname(filePath));
 }

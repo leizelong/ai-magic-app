@@ -63,11 +63,7 @@ function blobToBase64(blob: Blob) {
 export function fileToUrl(filePath: string) {
   const buffer = fs.readFileSync(filePath)
   const blob = new Blob([buffer], { type: 'image/png' })
-  // console.log('blob :>> ', blob);
   const url = URL.createObjectURL(blob)
-  // const base64 = await blobToBase64(blob)
-  // console.log('base64 :>> ', base64);
-  // console.log('url :>> ', url)
   return url
 }
 
@@ -103,17 +99,4 @@ export function generateUUID() {
 }
 
 
-const ffmpeg = require('fluent-ffmpeg');
 
-export function getVideoDuration(videoPath) {
-  return new Promise<number>((resolve, reject) => {
-    ffmpeg.ffprobe(videoPath, (err, metadata) => {
-      if (err) {
-        reject(err);
-      } else {
-        const durationInSeconds = metadata.format.duration;
-        resolve(durationInSeconds);
-      }
-    });
-  });
-}

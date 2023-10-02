@@ -31,14 +31,12 @@ const DraftContentConfig = {
   },
   cover: null,
   create_time: 0,
-  // totalDuration
-  duration: 2500000,
+  duration: 25000000,
   extra_info: null,
   fps: 30.0,
   free_render_index_mode_on: false,
   group_container: null,
-  id: 'AB41FBC1-A5D0-49fd-8DEA-20F7D735307D',
-  // id: draftContentId,
+  id: '0A4DDAA8-8595-4f08-B1C3-9B915522AEAF',
   keyframe_graph_list: [],
   keyframes: {
     adjusts: [],
@@ -64,14 +62,65 @@ const DraftContentConfig = {
     audio_balances: [],
     audio_effects: [],
     audio_fades: [],
-    audios: [],
-    beats: [],
+    audios: [
+      {
+        app_id: 0,
+        category_id: '',
+        category_name: 'local',
+        check_flag: 1,
+        duration: 10066666,
+        effect_id: '',
+        formula_id: '',
+        id: 'C40C7FD9-79B3-44e3-8559-8C898D18893B',
+        intensifies_path: '',
+        local_material_id: '29a2d773-ecc8-41c6-aabb-c525622b13f1',
+        music_id: '9c8e9a97-70a3-4dc8-8db1-80d97756090c',
+        name: '01-noart-10s.mp3',
+        path: 'D:/ai-workspace/好声音第一集/01-noart-10s.mp3',
+        query: '',
+        request_id: '',
+        resource_id: '',
+        search_id: '',
+        source_platform: 0,
+        team_id: '',
+        text_id: '',
+        tone_category_id: '',
+        tone_category_name: '',
+        tone_effect_id: '',
+        tone_effect_name: '',
+        tone_speaker: '',
+        tone_type: '',
+        type: 'extract_music',
+        video_id: '',
+        wave_points: []
+      }
+    ],
+    beats: [
+      {
+        ai_beats: {
+          beat_speed_infos: [],
+          beats_path: '',
+          beats_url: '',
+          melody_path: '',
+          melody_percents: [0.0],
+          melody_url: ''
+        },
+        enable_ai_beats: false,
+        gear: 404,
+        gear_count: 0,
+        id: '08ACED09-3C12-4581-A2EB-7EFCAE107D2F',
+        mode: 404,
+        type: 'beats',
+        user_beats: [],
+        user_delete_ai_beats: null
+      }
+    ],
     canvases: [
       {
         album_image: '',
         blur: 0.0,
         color: '',
-        id: '22309524-F417-40a9-84BA-63F016549DC0',
+        id: '70E705CE-02CF-4888-A29A-5636CCDEBFA5',
         image: '',
         image_id: '',
         image_name: '',
@@ -83,7 +132,7 @@ const DraftContentConfig = {
         album_image: '',
         blur: 0.0,
         color: '',
-        id: '6104DDA2-8BFB-4c7b-8362-E66B8CE40D98',
+        id: 'B138C2EC-8A1B-4a48-836E-209D6A8665DB',
         image: '',
         image_id: '',
         image_name: '',
@@ -95,7 +144,7 @@ const DraftContentConfig = {
         album_image: '',
         blur: 0.0,
         color: '',
-        id: '82B2A9CB-2CCB-4118-9015-3B6192879997',
+        id: '29D0D0C7-EF37-439a-AD9F-5A0D18213D9A',
         image: '',
         image_id: '',
         image_name: '',
@@ -107,7 +156,7 @@ const DraftContentConfig = {
         album_image: '',
         blur: 0.0,
         color: '',
-        id: 'C69E087B-401E-4731-BF9B-EFE4F0746712',
+        id: 'E4541045-68E7-4be7-9E23-330E40CEEBFD',
         image: '',
         image_id: '',
         image_name: '',
@@ -119,7 +168,7 @@ const DraftContentConfig = {
         album_image: '',
         blur: 0.0,
         color: '',
-        id: '8DC61328-DA45-4fc1-832E-DBCB936BA1E1',
+        id: 'CD8B016D-01C2-4f50-9F3A-A2783BCBCCC3',
         image: '',
         image_id: '',
         image_name: '',
@@ -153,31 +202,37 @@ const DraftContentConfig = {
     sound_channel_mappings: [
       {
         audio_channel_mapping: 0,
-        id: '76B4DB89-1122-4bb5-AE61-D25245EA3086',
+        id: 'B7BDE093-00BE-4010-86DA-EBC7EF353BF8',
         is_config_open: false,
         type: ''
       },
       {
         audio_channel_mapping: 0,
-        id: '557AE5BA-DDB5-4e10-A439-D0019C3B3B81',
+        id: '32CEC0CB-2E97-4bd3-9883-260061D35DF1',
         is_config_open: false,
         type: ''
       },
       {
         audio_channel_mapping: 0,
-        id: '18E413D5-8A29-46c4-8C46-0A752E7F1D59',
+        id: 'F8787D6E-7996-49a8-8504-D0CFB8CD3F28',
         is_config_open: false,
         type: ''
       },
       {
         audio_channel_mapping: 0,
-        id: '12135FF3-463C-4f31-BC0D-D85E77A243B3',
+        id: 'FABBF9FE-E1A9-4b7f-B8DA-E39D9C092C92',
         is_config_open: false,
         type: ''
       },
       {
         audio_channel_mapping: 0,
-        id: '8CA48BD7-E0A9-4b36-A91B-E022059F63FF',
+        id: '2EE8C22E-4D45-4663-B6F6-801838B10E0C',
+        is_config_open: false,
+        type: ''
+      },
+      {
+        audio_channel_mapping: 0,
+        id: '55801D4D-43EC-4ae0-871D-9E14D689FAB4',
         is_config_open: false,
         type: ''
       }
@@ -185,35 +240,42 @@ const DraftContentConfig = {
     speeds: [
       {
         curve_speed: null,
-        id: '6F496FD8-0272-411f-B369-C102827F553D',
+        id: 'AF1929A1-EE74-4c02-B20B-F7030B302C0B',
         mode: 0,
         speed: 1.0,
         type: 'speed'
       },
       {
         curve_speed: null,
-        id: '33985D85-F604-42f6-88CE-C8DE60BC9C16',
+        id: '24433F04-A325-43e4-BE40-6E213D40A8E2',
         mode: 0,
         speed: 1.0,
         type: 'speed'
       },
       {
         curve_speed: null,
-        id: '2B86063B-6304-45f1-A0B0-D807902C1994',
+        id: '0B6A0CF0-0C82-4fad-B4A1-E5B60E1136FB',
         mode: 0,
         speed: 1.0,
         type: 'speed'
       },
       {
         curve_speed: null,
-        id: '687DA9B1-F8E1-4b9e-8F9F-9953C4649712',
+        id: 'CDD7ED2E-7CA3-4071-AD2D-EB5CBE248CBB',
         mode: 0,
         speed: 1.0,
         type: 'speed'
       },
       {
         curve_speed: null,
-        id: '24A0C5B9-B330-4709-A123-E7DA933641B7',
+        id: '04EB5F8B-9973-4646-B985-705B51FDBA4E',
+        mode: 0,
+        speed: 1.0,
+        type: 'speed'
+      },
+      {
+        curve_speed: null,
+        id: '1470CB39-05AA-46aa-959F-5DCD405BDA81',
         mode: 0,
         speed: 1.0,
         type: 'speed'
@@ -253,7 +315,7 @@ const DraftContentConfig = {
         gameplay: null,
         has_audio: false,
         height: 1080,
-        id: '19FF636A-DA62-46d0-9F05-7AC748FF3BDC',
+        id: 'BF690223-2863-4f7d-A719-C5D7FCF6E22C',
         intensifies_audio_path: '',
         intensifies_path: '',
         is_ai_generate_content: false,
@@ -324,7 +386,7 @@ const DraftContentConfig = {
         gameplay: null,
         has_audio: false,
         height: 1080,
-        id: 'CFBD82D1-3E83-4aa8-AFEB-5AC3348FFA90',
+        id: '578B304C-7F0B-46bb-8B17-4CBB64138647',
         intensifies_audio_path: '',
         intensifies_path: '',
         is_ai_generate_content: false,
@@ -395,7 +457,7 @@ const DraftContentConfig = {
         gameplay: null,
         has_audio: false,
         height: 1080,
-        id: '4ABAD563-9EE3-4724-AD01-20CA23502E67',
+        id: '0837FD10-74C3-4351-BE2F-D90A853269BD',
         intensifies_audio_path: '',
         intensifies_path: '',
         is_ai_generate_content: false,
@@ -466,7 +528,7 @@ const DraftContentConfig = {
         gameplay: null,
         has_audio: false,
         height: 1080,
-        id: '214966AC-1BD9-45d1-8352-3B7DBF8BA2F4',
+        id: '7BFE4E1C-DFC4-458e-B306-07C74C4D457C',
         intensifies_audio_path: '',
         intensifies_path: '',
         is_ai_generate_content: false,
@@ -537,7 +599,7 @@ const DraftContentConfig = {
         gameplay: null,
         has_audio: false,
         height: 1080,
-        id: 'CD063794-389C-4124-95D3-9BA8863A65C7',
+        id: '13B36E39-8857-47b8-B447-DE92D65D7F5E',
         intensifies_audio_path: '',
         intensifies_path: '',
         is_ai_generate_content: false,
@@ -586,35 +648,42 @@ const DraftContentConfig = {
     vocal_separations: [
       {
         choice: 0,
-        id: 'A0CC2A8C-76F7-49af-85FE-371E2D21F662',
+        id: '0A7CDF63-459E-4a9d-BBAA-303F3A9D3E9A',
         production_path: '',
         time_range: null,
         type: 'vocal_separation'
       },
       {
         choice: 0,
-        id: 'CD2414EC-52DD-4f41-A4FA-023A2B37025D',
+        id: '24FE158D-E953-4fd8-B76F-7D66808BBB83',
         production_path: '',
         time_range: null,
         type: 'vocal_separation'
       },
       {
         choice: 0,
-        id: 'FFB0C438-C3D5-48ef-87EB-A37B57732CA4',
+        id: 'F3298763-567B-4319-A506-2463E34968E0',
         production_path: '',
         time_range: null,
         type: 'vocal_separation'
       },
       {
         choice: 0,
-        id: 'CBC5573C-EEA9-48ee-B85F-39C400BA649C',
+        id: '8875C8A1-26F2-4d01-8B15-C99837E75E23',
         production_path: '',
         time_range: null,
         type: 'vocal_separation'
       },
       {
         choice: 0,
-        id: '9A7EB349-F10E-4a7a-8BE3-EFEC166451AC',
+        id: '3DD38C95-FCDE-4b1f-8F16-2750806EE0B2',
+        production_path: '',
+        time_range: null,
+        type: 'vocal_separation'
+      },
+      {
+        choice: 0,
+        id: 'E056FD62-5633-43f5-83C2-7344BE7286AC',
         production_path: '',
         time_range: null,
         type: 'vocal_separation'
@@ -643,7 +712,7 @@ const DraftContentConfig = {
     {
       attribute: 0,
       flag: 0,
-      id: '1CF7CD61-A442-47ee-9374-D7534A189804',
+      id: 'B9F0C05D-13FA-4baa-B02B-5BF023F790A7',
       is_default_name: true,
       name: '',
       segments: [
@@ -663,20 +732,20 @@ const DraftContentConfig = {
           enable_lut: true,
           enable_smart_color_adjust: false,
           extra_material_refs: [
-            '6F496FD8-0272-411f-B369-C102827F553D',
-            '22309524-F417-40a9-84BA-63F016549DC0',
-            '76B4DB89-1122-4bb5-AE61-D25245EA3086',
-            'A0CC2A8C-76F7-49af-85FE-371E2D21F662'
+            'AF1929A1-EE74-4c02-B20B-F7030B302C0B',
+            '70E705CE-02CF-4888-A29A-5636CCDEBFA5',
+            'B7BDE093-00BE-4010-86DA-EBC7EF353BF8',
+            '0A7CDF63-459E-4a9d-BBAA-303F3A9D3E9A'
           ],
           group_id: '',
           hdr_settings: { intensity: 1.0, mode: 1, nits: 1000 },
-          id: '8C05D33D-CCC9-4c0c-B0E5-5A1D6869CAED',
+          id: '7AFA7339-8E5C-4e20-9F09-CF60A8EFD0BA',
           intensifies_audio: false,
           is_placeholder: false,
           is_tone_modify: false,
           keyframe_refs: [],
           last_nonzero_volume: 1.0,
-          material_id: '19FF636A-DA62-46d0-9F05-7AC748FF3BDC',
+          material_id: 'BF690223-2863-4f7d-A719-C5D7FCF6E22C',
           render_index: 0,
           responsive_layout: {
             enable: false,
@@ -713,20 +782,20 @@ const DraftContentConfig = {
           enable_lut: true,
           enable_smart_color_adjust: false,
           extra_material_refs: [
-            '33985D85-F604-42f6-88CE-C8DE60BC9C16',
-            '6104DDA2-8BFB-4c7b-8362-E66B8CE40D98',
-            '557AE5BA-DDB5-4e10-A439-D0019C3B3B81',
-            'CD2414EC-52DD-4f41-A4FA-023A2B37025D'
+            '24433F04-A325-43e4-BE40-6E213D40A8E2',
+            'B138C2EC-8A1B-4a48-836E-209D6A8665DB',
+            '32CEC0CB-2E97-4bd3-9883-260061D35DF1',
+            '24FE158D-E953-4fd8-B76F-7D66808BBB83'
           ],
           group_id: '',
           hdr_settings: { intensity: 1.0, mode: 1, nits: 1000 },
-          id: '76047720-221B-4cdd-8DD5-BFC450897AC9',
+          id: '42565DE3-8075-4b60-9177-579ABB99AD35',
           intensifies_audio: false,
           is_placeholder: false,
           is_tone_modify: false,
           keyframe_refs: [],
           last_nonzero_volume: 1.0,
-          material_id: 'CFBD82D1-3E83-4aa8-AFEB-5AC3348FFA90',
+          material_id: '578B304C-7F0B-46bb-8B17-4CBB64138647',
           render_index: 0,
           responsive_layout: {
             enable: false,
@@ -763,20 +832,20 @@ const DraftContentConfig = {
           enable_lut: true,
           enable_smart_color_adjust: false,
           extra_material_refs: [
-            '2B86063B-6304-45f1-A0B0-D807902C1994',
-            '82B2A9CB-2CCB-4118-9015-3B6192879997',
-            '18E413D5-8A29-46c4-8C46-0A752E7F1D59',
-            'FFB0C438-C3D5-48ef-87EB-A37B57732CA4'
+            '0B6A0CF0-0C82-4fad-B4A1-E5B60E1136FB',
+            '29D0D0C7-EF37-439a-AD9F-5A0D18213D9A',
+            'F8787D6E-7996-49a8-8504-D0CFB8CD3F28',
+            'F3298763-567B-4319-A506-2463E34968E0'
           ],
           group_id: '',
           hdr_settings: { intensity: 1.0, mode: 1, nits: 1000 },
-          id: '0BC310CF-CC9C-4322-8B67-E87F5B1E51BF',
+          id: 'AC992C8C-1AA0-4f79-A7BE-85A9EE7DB36F',
           intensifies_audio: false,
           is_placeholder: false,
           is_tone_modify: false,
           keyframe_refs: [],
           last_nonzero_volume: 1.0,
-          material_id: '4ABAD563-9EE3-4724-AD01-20CA23502E67',
+          material_id: '0837FD10-74C3-4351-BE2F-D90A853269BD',
           render_index: 0,
           responsive_layout: {
             enable: false,
@@ -813,20 +882,20 @@ const DraftContentConfig = {
           enable_lut: true,
           enable_smart_color_adjust: false,
           extra_material_refs: [
-            '687DA9B1-F8E1-4b9e-8F9F-9953C4649712',
-            'C69E087B-401E-4731-BF9B-EFE4F0746712',
-            '12135FF3-463C-4f31-BC0D-D85E77A243B3',
-            'CBC5573C-EEA9-48ee-B85F-39C400BA649C'
+            'CDD7ED2E-7CA3-4071-AD2D-EB5CBE248CBB',
+            'E4541045-68E7-4be7-9E23-330E40CEEBFD',
+            'FABBF9FE-E1A9-4b7f-B8DA-E39D9C092C92',
+            '8875C8A1-26F2-4d01-8B15-C99837E75E23'
           ],
           group_id: '',
           hdr_settings: { intensity: 1.0, mode: 1, nits: 1000 },
-          id: '7F1A5015-29F1-4930-8BC8-73577BECB8F1',
+          id: '3CA3F5DD-58C9-4bb6-8909-7757AF3B46D3',
           intensifies_audio: false,
           is_placeholder: false,
           is_tone_modify: false,
           keyframe_refs: [],
           last_nonzero_volume: 1.0,
-          material_id: '214966AC-1BD9-45d1-8352-3B7DBF8BA2F4',
+          material_id: '7BFE4E1C-DFC4-458e-B306-07C74C4D457C',
           render_index: 0,
           responsive_layout: {
             enable: false,
@@ -863,20 +932,20 @@ const DraftContentConfig = {
           enable_lut: true,
           enable_smart_color_adjust: false,
           extra_material_refs: [
-            '24A0C5B9-B330-4709-A123-E7DA933641B7',
-            '8DC61328-DA45-4fc1-832E-DBCB936BA1E1',
-            '8CA48BD7-E0A9-4b36-A91B-E022059F63FF',
-            '9A7EB349-F10E-4a7a-8BE3-EFEC166451AC'
+            '04EB5F8B-9973-4646-B985-705B51FDBA4E',
+            'CD8B016D-01C2-4f50-9F3A-A2783BCBCCC3',
+            '2EE8C22E-4D45-4663-B6F6-801838B10E0C',
+            '3DD38C95-FCDE-4b1f-8F16-2750806EE0B2'
           ],
           group_id: '',
           hdr_settings: { intensity: 1.0, mode: 1, nits: 1000 },
-          id: '725080C2-A2ED-4bb9-ACB6-80FCC0B9485A',
+          id: 'C077E98E-5E99-479b-8F35-59BAF7E34CCC',
           intensifies_audio: false,
           is_placeholder: false,
           is_tone_modify: false,
           keyframe_refs: [],
           last_nonzero_volume: 1.0,
-          material_id: 'CD063794-389C-4124-95D3-9BA8863A65C7',
+          material_id: '13B36E39-8857-47b8-B447-DE92D65D7F5E',
           render_index: 0,
           responsive_layout: {
             enable: false,
@@ -899,6 +968,60 @@ const DraftContentConfig = {
         }
       ],
       type: 'video'
+    },
+    {
+      attribute: 0,
+      flag: 0,
+      id: 'A3A693B0-64E9-4360-83DE-D72C6E8272DD',
+      is_default_name: true,
+      name: '',
+      segments: [
+        {
+          cartoon: false,
+          clip: null,
+          common_keyframes: [],
+          enable_adjust: false,
+          enable_color_curves: true,
+          enable_color_wheels: true,
+          enable_lut: false,
+          enable_smart_color_adjust: false,
+          extra_material_refs: [
+            '1470CB39-05AA-46aa-959F-5DCD405BDA81',
+            '08ACED09-3C12-4581-A2EB-7EFCAE107D2F',
+            '55801D4D-43EC-4ae0-871D-9E14D689FAB4',
+            'E056FD62-5633-43f5-83C2-7344BE7286AC'
+          ],
+          group_id: '',
+          hdr_settings: null,
+          id: '89081D02-D1E1-4154-9788-1D4565E45982',
+          intensifies_audio: false,
+          is_placeholder: false,
+          is_tone_modify: false,
+          keyframe_refs: [],
+          last_nonzero_volume: 1.0,
+          material_id: 'C40C7FD9-79B3-44e3-8559-8C898D18893B',
+          render_index: 0,
+          responsive_layout: {
+            enable: false,
+            horizontal_pos_layout: 0,
+            size_layout: 0,
+            target_follow: '',
+            vertical_pos_layout: 0
+          },
+          reverse: false,
+          source_timerange: { duration: 10066666, start: 0 },
+          speed: 1.0,
+          target_timerange: { duration: 10066666, start: 0 },
+          template_id: '',
+          template_scene: 'default',
+          track_attribute: 0,
+          track_render_index: 0,
+          uniform_scale: null,
+          visible: true,
+          volume: 0.6210584044456482
+        }
+      ],
+      type: 'audio'
     }
   ],
   update_time: 0,
@@ -910,12 +1033,18 @@ interface GenerateDraftContentDto {
   draftProjectDir: string
   videoInfo: {
     duration: number
+    filePath: string
+    fileName: string
   }
+  audioList: Array<{
+    filePath: string
+    fileName: string
+  }>
 }
 
 /** draft_content.json => draft_content.json.back, template-2.tmp */
 export function generateDraftContent(data: GenerateDraftContentDto) {
-  const { keyFrameList, draftProjectDir, videoInfo } = data
+  const { keyFrameList, draftProjectDir, videoInfo, audioList } = data
 
   const totalDuration = videoInfo.duration
   const draftContentId = generateUUID()
@@ -924,8 +1053,9 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
     const config: typeof DraftContentConfig = cloneDeep(baseConfig)
     config.duration = totalDuration
     config.id = draftContentId
+    const totalLength = keyFrameList.length + audioList.length
     // 1. speeds
-    const speeds = keyFrameList.map(() => {
+    const speeds = new Array(totalLength).fill({}).map(() => {
       const speedId = generateUUID()
       return {
         curve_speed: null,
@@ -956,7 +1086,7 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
     config.materials.canvases = canvases
 
     // 3. sound_channel_mappings
-    const sound_channel_mappings = keyFrameList.map(() => {
+    const sound_channel_mappings = new Array(totalLength).fill({}).map(() => {
       const audioId = generateUUID()
       return {
         audio_channel_mapping: 0,
@@ -968,7 +1098,7 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
     config.materials.sound_channel_mappings = sound_channel_mappings
 
     // 4. vocal_separations
-    const vocal_separations = keyFrameList.map(() => {
+    const vocal_separations = new Array(totalLength).fill({}).map(() => {
       const separationId = generateUUID()
       return {
         choice: 0,
@@ -1063,10 +1193,83 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
     })
     config.materials.videos = videos
 
+    // audios
+    const audios = audioList.map((audio) => {
+      const musicId = generateUUID()
+      const audioId = generateUUID()
+      // todo metaInfo
+      const local_material_id = generateUUID()
+      const { fileName, filePath } = audio
+
+      return {
+        app_id: 0,
+        category_id: '',
+        category_name: 'local',
+        check_flag: 1,
+        duration: videoInfo.duration,
+        effect_id: '',
+        formula_id: '',
+        // id: 'C40C7FD9-79B3-44e3-8559-8C898D18893B',
+        id: audioId,
+        intensifies_path: '',
+        // local_material_id: '29a2d773-ecc8-41c6-aabb-c525622b13f1',
+        local_material_id: local_material_id,
+        // music_id: '9c8e9a97-70a3-4dc8-8db1-80d97756090c',
+        music_id: musicId,
+        // name: '01-noart-10s.mp3',
+        // path: 'D:/ai-workspace/好声音第一集/01-noart-10s.mp3',
+        name: fileName,
+        path: filePath,
+        query: '',
+        request_id: '',
+        resource_id: '',
+        search_id: '',
+        source_platform: 0,
+        team_id: '',
+        text_id: '',
+        tone_category_id: '',
+        tone_category_name: '',
+        tone_effect_id: '',
+        tone_effect_name: '',
+        tone_speaker: '',
+        tone_type: '',
+        type: 'extract_music',
+        video_id: '',
+        wave_points: []
+      }
+    })
+
+    config.materials.audios = audios
+
+    // audios beats
+    const beats = audioList.map(() => {
+      const beatId = generateUUID()
+      return {
+        ai_beats: {
+          beat_speed_infos: [],
+          beats_path: '',
+          beats_url: '',
+          melody_path: '',
+          melody_percents: [0.0],
+          melody_url: ''
+        },
+        enable_ai_beats: false,
+        gear: 404,
+        gear_count: 0,
+        // id: '08ACED09-3C12-4581-A2EB-7EFCAE107D2F',
+        id: beatId,
+        mode: 404,
+        type: 'beats',
+        user_beats: [],
+        user_delete_ai_beats: null
+      }
+    })
+    config.materials.beats = beats
+
     // segments => video => tracks
 
-    // 1. segments
-    const segments = keyFrameList.map((keyFrame, index) => {
+    // 1. videoSegments
+    const videoSegments = keyFrameList.map((keyFrame, index) => {
       const segmentId = generateUUID()
       const speedMaterialRef = speeds[index]
       const canvasMaterialRef = canvases[index]
@@ -1133,22 +1336,94 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
       }
     })
 
-    // 2. track video item
-    const trackVideoId = generateUUID()
-    const trackVideo = {
+    // 2. audioSegments
+    const audioSegments = audioList.map((audio, index) => {
+      const segmentId = generateUUID()
+      const audioMaterialRef = audios[index]
+      const speedMaterialRef = speeds[keyFrameList.length + index]
+      const beatMaterialRef = beats[index]
+      const soundMaterialRef = sound_channel_mappings[keyFrameList.length + index]
+      const separationMaterialRef = vocal_separations[keyFrameList.length + index]
+      const audioDuration = videoInfo.duration
+      return {
+        cartoon: false,
+        clip: null,
+        common_keyframes: [],
+        enable_adjust: false,
+        enable_color_curves: true,
+        enable_color_wheels: true,
+        enable_lut: false,
+        enable_smart_color_adjust: false,
+        extra_material_refs: [
+          // '1470CB39-05AA-46aa-959F-5DCD405BDA81',
+          // '08ACED09-3C12-4581-A2EB-7EFCAE107D2F',
+          // '55801D4D-43EC-4ae0-871D-9E14D689FAB4',
+          // 'E056FD62-5633-43f5-83C2-7344BE7286AC'
+          speedMaterialRef.id,
+          beatMaterialRef.id,
+          soundMaterialRef.id,
+          separationMaterialRef.id
+        ],
+        group_id: '',
+        hdr_settings: null,
+        // id: '89081D02-D1E1-4154-9788-1D4565E45982',
+        id: segmentId,
+        intensifies_audio: false,
+        is_placeholder: false,
+        is_tone_modify: false,
+        keyframe_refs: [],
+        last_nonzero_volume: 1.0,
+        // material_id: 'C40C7FD9-79B3-44e3-8559-8C898D18893B',
+        material_id: audioMaterialRef.id,
+        render_index: 0,
+        responsive_layout: {
+          enable: false,
+          horizontal_pos_layout: 0,
+          size_layout: 0,
+          target_follow: '',
+          vertical_pos_layout: 0
+        },
+        reverse: false,
+        source_timerange: { duration: audioDuration, start: 0 },
+        speed: 1.0,
+        target_timerange: { duration: audioDuration, start: 0 },
+        template_id: '',
+        template_scene: 'default',
+        track_attribute: 0,
+        track_render_index: 0,
+        uniform_scale: null,
+        visible: true,
+        volume: 0.6210584044456482
+      }
+    })
+
+    // 3. track video item
+    const videoTrackId = generateUUID()
+    const videoTrack = {
       attribute: 0,
       flag: 0,
-      id: trackVideoId,
+      id: videoTrackId,
       is_default_name: true,
       name: '',
-      segments,
+      segments: videoSegments,
       type: 'video'
     }
+    // 3. track audio item
+    const audioTrackId = generateUUID()
+    const audioTrack = {
+      attribute: 0,
+      flag: 0,
+      id: audioTrackId,
+      is_default_name: true,
+      name: '',
+      segments: audioSegments,
+      type: 'audio'
+    }
+
     // 3. tracks
-    const tracks = [trackVideo]
+    const tracks = [videoTrack, audioTrack]
     config.tracks = tracks
-    // config.tracks[0].id = trackVideoId
-    // config.tracks[0].segments = segments
+
     return config
   }
 

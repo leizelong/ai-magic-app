@@ -9,30 +9,50 @@
 
 // import { app } from 'electron'
 import { generateDraftContent, generateDraftMetaInfo } from './JianYingDraft'
+import { extractAudioFromVideoAsync } from './ffmpeg'
 import { copyDirectoryContents } from './file'
 import { DraftKeyFrameDto } from './frame'
 import { path } from './module'
 
 const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
-const projectRootDirectory = process.env.INIT_CWD || ''
+
+const projectRootDirectory = process.cwd() || ''
+
 const JianYingTemplateDir = path.join(projectRootDirectory, 'templates', 'JianYingDraft')
 
 interface CombineJianYingVideoDto {
   keyFrameList: DraftKeyFrameDto[]
   videoInfo: {
     duration: number
+    filePath: string
+    fileName: string
   }
 }
 
 export function combineJianYingVideo(options: CombineJianYingVideoDto) {
   const { keyFrameList, videoInfo } = options
-  const draftProjectName = 'test'
+
+  const draftProjectName = path.basename(path.dirname(videoInfo.filePath))
+  const videoNameWithoutExtension = videoInfo.fileName.replace(/(.*)\..*$/, '$1')
+
+  const audioFileName = `${videoNameWithoutExtension}.mp3`
+  const audioFilePath = path.join(path.dirname(videoInfo.filePath), audioFileName)
+
+  // 音频分离
+  extractAudioFromVideoAsync(videoInfo.filePath, audioFilePath)
+
+  const audioInfo = {
+    filePath: audioFilePath,
+    fileName: audioFileName
+  }
+
   // todo 考虑重名
   const draftProjectDir = path.join(JianYingAppDraftsDir, draftProjectName)
+
   // step1
   copyDirectoryContents(JianYingTemplateDir, draftProjectDir)
   // step2
-  generateDraftContent({ keyFrameList, draftProjectDir, videoInfo })
+  generateDraftContent({ keyFrameList, draftProjectDir, videoInfo, audioList: [audioInfo] })
 
   generateDraftMetaInfo()
 }

@@ -773,6 +773,13 @@
   dependencies:
     "@types/ms" "*"
 
+"@types/fluent-ffmpeg@^2.1.22":
+  version "2.1.22"
+  resolved "https://registry.yarnpkg.com/@types/fluent-ffmpeg/-/fluent-ffmpeg-2.1.22.tgz#57fe44beb5e68ef5d33fd58680c20210f64cfca7"
+  integrity sha512-ZZPDDrDOb2Ahp5fxZzuw64f0rCcviv+SDuCyJ1PIF/UFn9wNHtb/bY8Dj/2nrbQ7SNsGI7gaO2wJVkkU2HBcMg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/fs-extra@9.0.13", "@types/fs-extra@^9.0.11":
   version "9.0.13"
   resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.13.tgz#7594fbae04fe7f1918ce8b3d213f74ff44ac1f45"
@@ -4543,6 +4550,11 @@ verror@^1.10.0:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
+
+vite-plugin-environment@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/vite-plugin-environment/-/vite-plugin-environment-1.1.3.tgz#d01a04abb2f69730a4866c9c9db51d3dab74645b"
+  integrity sha512-9LBhB0lx+2lXVBEWxFZC+WO7PKEyE/ykJ7EPWCq95NEcCpblxamTbs5Dm3DLBGzwODpJMEnzQywJU8fw6XGGGA==
 
 vite@^4.4.9:
   version "4.4.9"
