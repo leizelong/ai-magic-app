@@ -32,3 +32,6 @@ $ yarn build:mac
 # For Linux
 $ yarn build:linux
 ```
+
+
+pip install pillow

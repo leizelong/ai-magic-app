@@ -33,6 +33,7 @@ import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
 import { path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
+import { batchHighDefinition } from '@renderer/utils/high-definition'
 
 const { Dragger } = Upload
 
@@ -76,9 +77,11 @@ export function KeyframesPage() {
 
   const [taggerLoading, setTaggerLoading] = useState(false)
 
+  const [batchHighDefinitionLoading, setBatchHighDefinitionLoading] = useState(false)
+
   const [combineLoading, setCombineLoading] = useState(false)
 
-  const [pageResultLoading, setPageResultLoading] = useState(false)
+  const [pageResultLoading, setPageResultLoading] = useState(true)
 
   const [searchLoading, setSearchLoading] = useState(false)
 
@@ -90,7 +93,7 @@ export function KeyframesPage() {
 
   const initialValues: Partial<FormValue> = {
     redrawFactor: 0.7,
-    projectDirectoryPath: 'D:\\ai-workspace\\我的女友是恶劣大小姐'
+    projectDirectoryPath: 'D:\\ai-workspace\\好声音第一集-1'
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
     // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -192,10 +195,10 @@ export function KeyframesPage() {
     try {
       setTaggerLoading(true)
       await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
-
+      // 部分更新
+      await updateKeyframesData()
       message.success('反推关键词成功')
       playSuccessMusic()
-      await updateKeyframesData()
     } catch (error: any) {
       message.error(error.message)
     } finally {
@@ -219,9 +222,19 @@ export function KeyframesPage() {
     }
   }
 
-  async function handleBatchImageHigh() {
-    const { image2ImageHighOutputPath } = getProjectAllPaths()
-    checkAndCreateDirectory(image2ImageHighOutputPath)
+  async function handleBatchHighImage() {
+    try {
+      setBatchHighDefinitionLoading(true)
+      const { image2ImageHighOutputPath, image2ImageOutputPath } = getProjectAllPaths()
+      checkAndCreateDirectory(image2ImageHighOutputPath)
+      await batchHighDefinition(image2ImageOutputPath, image2ImageHighOutputPath)
+      message.success('批量高清成功')
+      playSuccessMusic()
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setBatchHighDefinitionLoading(false)
+    }
   }
 
   async function handleUseSeed(item: KeyframeDto, index: number) {
@@ -289,6 +302,7 @@ export function KeyframesPage() {
       // todo 检测草稿是否存在，提示是否覆盖
       combineJianYingVideo({ keyFrameList, videoInfo })
       message.success('剪映草稿视频合成成功')
+      playSuccessMusic()
     } catch (error: any) {
       if (error.message.includes('does not exist')) {
         message.error('请先把图片批量高清处理')
@@ -450,7 +464,9 @@ export function KeyframesPage() {
           一键图生图
         </Button>
 
-        <Button onClick={handleBatchImageHigh}>批量高清</Button>
+        <Button type="primary" onClick={handleBatchHighImage} loading={batchHighDefinitionLoading}>
+          批量高清
+        </Button>
 
         <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
           剪映合成
