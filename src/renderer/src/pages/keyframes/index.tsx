@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputNumber } from 'antd'
-
-const { Dragger } = Upload
 import './index.scss'
-import { exec, generateHash } from '@renderer/utils/tool'
+import { exec, generateHash, playSuccessMusic, sleep } from '@renderer/utils/tool'
 import {
   FrameResult,
+  generateFramesP,
   generateKeyframes,
   getFrames,
   getKeyFramesInfo,
@@ -21,16 +20,22 @@ import {
   createTaggerTask
 } from '@renderer/utils/sdApi'
 import {
+  checkAndCreateDirectory,
   copyFileToDirectory,
   deleteFileAsync,
   extractFileNameWithoutExtension,
   readFileToBase64,
   readImage2ImageDirectory,
-  readTxtFilesInDirectory
+  readTxtFilesInDirectory,
+  writeToFile
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
 import { path } from '@renderer/utils/module'
+import { SearchProps } from 'antd/es/input'
+
+const { Dragger } = Upload
+
 interface FormValue {
   // keyframesOutputPath: string
   // videoPath: string
@@ -44,6 +49,7 @@ interface FormValue {
 
 interface ProjectAllDirectory {
   keyframesOutputPath: string
+  framesPOutputPath: string
   videoPath: string
   taggerOutputPath: string
   image2ImageOutputPath: string
@@ -72,6 +78,10 @@ export function KeyframesPage() {
 
   const [combineLoading, setCombineLoading] = useState(false)
 
+  const [pageResultLoading, setPageResultLoading] = useState(false)
+
+  const [searchLoading, setSearchLoading] = useState(false)
+
   const forceUpdate = autoUpdateId()
 
   const [keyframesDataSource, setKeyframesDataSource] = useState<KeyframeDto[]>([])
@@ -80,7 +90,7 @@ export function KeyframesPage() {
 
   const initialValues: Partial<FormValue> = {
     redrawFactor: 0.7,
-    projectDirectoryPath: 'D:\\ai-workspace\\带某子逗阵'
+    projectDirectoryPath: 'D:\\ai-workspace\\我的女友是恶劣大小姐'
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
     // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -88,15 +98,17 @@ export function KeyframesPage() {
     // image2ImageHighOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-upscale'
   }
 
-  async function getProjectAllPaths(): Promise<ProjectAllDirectory> {
-    const { projectDirectoryPath } = await form.validateFields()
+  function getProjectAllPaths(): ProjectAllDirectory {
+    // const { projectDirectoryPath } = await form.validateFields()
+    const { projectDirectoryPath } = form.getFieldsValue()
     const videoPath = path.join(projectDirectoryPath, 'origin.mp4')
     const keyframesOutputPath = path.join(projectDirectoryPath, 'keyframes')
     const taggerOutputPath = path.join(projectDirectoryPath, 'keyframes-tagger')
     const image2ImageOutputPath = path.join(projectDirectoryPath, 'keyframes-output')
     const image2ImageHighOutputPath = path.join(projectDirectoryPath, 'keyframes-upscale')
-
+    const framesPOutputPath = path.join(projectDirectoryPath, 'frames-P')
     return {
+      framesPOutputPath,
       videoPath,
       keyframesOutputPath,
       taggerOutputPath,
@@ -119,27 +131,35 @@ export function KeyframesPage() {
   }
 
   async function updateKeyframesData() {
-    const { keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } =
-      await getProjectAllPaths()
+    try {
+      setPageResultLoading(true)
+      // await sleep(3000)
+      const { keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } =
+        await getProjectAllPaths()
 
-    const filePaths = await getKeyframesPaths(keyframesOutputPath)
-    const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
-    const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
+      const filePaths = await getKeyframesPaths(keyframesOutputPath)
+      const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
+      const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
 
-    const data: KeyframeDto[] = filePaths.map((filePath) => {
-      const name = extractFileNameWithoutExtension(filePath)
-      const prompt = promptsMap.get(name)
-      const { seed, filePath: img2imgOutputFilePath } = image2ImageOutputMap.get(name) || {}
+      const data: KeyframeDto[] = filePaths.map((filePath) => {
+        const name = extractFileNameWithoutExtension(filePath)
+        const prompt = promptsMap.get(name)
+        const { seed, filePath: img2imgOutputFilePath } = image2ImageOutputMap.get(name) || {}
 
-      return {
-        filePath,
-        name,
-        prompt,
-        seed,
-        img2imgOutputFilePath
-      }
-    })
-    setKeyframesDataSource(data)
+        return {
+          filePath,
+          name,
+          prompt,
+          seed,
+          img2imgOutputFilePath
+        }
+      })
+      setKeyframesDataSource(data)
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setPageResultLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -149,12 +169,16 @@ export function KeyframesPage() {
   async function handleGenerate() {
     setKeyframesLoading(true)
     try {
-      const { videoPath, keyframesOutputPath } = await getProjectAllPaths()
+      const { videoPath, keyframesOutputPath, framesPOutputPath } = await getProjectAllPaths()
 
+      // 生成P帧，弥补I帧
+      await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
+
       await updateKeyframesData()
 
       message.success('生成关键帧成功')
+      playSuccessMusic()
     } catch (error: any) {
       message.error(error.message)
     } finally {
@@ -170,6 +194,7 @@ export function KeyframesPage() {
       await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
 
       message.success('反推关键词成功')
+      playSuccessMusic()
       await updateKeyframesData()
     } catch (error: any) {
       message.error(error.message)
@@ -183,14 +208,20 @@ export function KeyframesPage() {
       setImg2ImgLoading(true)
       for (let index = 0; index < keyframesDataSource.length; index++) {
         const keyframe = keyframesDataSource[index]
-        await handleImg2Img(keyframe, index)
+        await handleImg2Img(keyframe, index, true)
       }
       message.success('批量图生图成功')
+      playSuccessMusic()
     } catch (error: any) {
       message.error(error.message)
     } finally {
       setImg2ImgLoading(false)
     }
+  }
+
+  async function handleBatchImageHigh() {
+    const { image2ImageHighOutputPath } = getProjectAllPaths()
+    checkAndCreateDirectory(image2ImageHighOutputPath)
   }
 
   async function handleUseSeed(item: KeyframeDto, index: number) {
@@ -202,15 +233,18 @@ export function KeyframesPage() {
     form.setFieldValue('randomSeed', seed)
   }
 
-  async function handleImg2Img(item: KeyframeDto, index: number) {
+  async function handleImg2Img(item: KeyframeDto, index: number, isBatch?: boolean) {
     const values = await form.validateFields()
     const { image2ImageOutputPath } = await getProjectAllPaths()
     const { randomSeed, redrawFactor } = values
-
+    if (isBatch && keyframesDataSource[index].img2imgOutputFilePath) {
+      // 批量处理，有图就跳过吧
+      return
+    }
     const { prompt = '', filePath, name } = item
     const imgBase64 = readFileToBase64(filePath)
     try {
-      if (!randomSeed && keyframesDataSource[index].img2imgOutputFilePath) {
+      if (keyframesDataSource[index].img2imgOutputFilePath) {
         // delete 原图
         await deleteFileAsync(keyframesDataSource[index].img2imgOutputFilePath)
       }
@@ -232,8 +266,10 @@ export function KeyframesPage() {
       )
       keyframesDataSource[index].seed = seed
       keyframesDataSource[index].img2imgOutputFilePath = targetFilePath
-
-      message.success('图生图成功')
+      if (!isBatch) {
+        message.success('图生图成功')
+        playSuccessMusic()
+      }
     } catch (error: any) {
       message.error(error.message)
     } finally {
@@ -254,9 +290,35 @@ export function KeyframesPage() {
       combineJianYingVideo({ keyFrameList, videoInfo })
       message.success('剪映草稿视频合成成功')
     } catch (error: any) {
-      message.error(error.message)
+      if (error.message.includes('does not exist')) {
+        message.error('请先把图片批量高清处理')
+      } else {
+        message.error(error.message)
+      }
     } finally {
       setCombineLoading(false)
+    }
+  }
+
+  async function handlePromptComplete(e: any, item: KeyframeDto, index: number) {
+    const value = e.target.value
+    const { taggerOutputPath } = getProjectAllPaths()
+    const promptPath = path.join(taggerOutputPath, `${item.name}.txt`)
+    keyframesDataSource[index].prompt = value
+    forceUpdate()
+    writeToFile(value, promptPath)
+  }
+
+  const handleProjectDirectorySearch: SearchProps['onSearch'] = async (value, _e, info) => {
+    if (!value) return
+
+    try {
+      setSearchLoading(true)
+      updateKeyframesData()
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setSearchLoading(false)
     }
   }
 
@@ -272,9 +334,13 @@ export function KeyframesPage() {
           <LocalImage className="keyframe_image" filePath={filePath}></LocalImage>
 
           <Input.TextArea
-            value={prompt}
+            // value={prompt}
+            defaultValue={prompt}
             style={{ width: 300, height: '100%' }}
             autoSize={{ minRows: 8, maxRows: 8 }}
+            // onChange={handlePromptComplete}
+            // onPressEnter={(e) => handlePromptComplete(e, item, index)}
+            onBlur={(e) => handlePromptComplete(e, item, index)}
           ></Input.TextArea>
 
           <Space direction="vertical">
@@ -306,7 +372,12 @@ export function KeyframesPage() {
           label="项目工程目录"
           rules={[{ required: true, message: '项目工程目录必填' }]}
         >
-          <Input></Input>
+          <Input.Search
+            placeholder="input search text"
+            loading={searchLoading}
+            onSearch={handleProjectDirectorySearch}
+            enterButton
+          />
         </Form.Item>
         {/* <Form.Item name="videoPath" rules={[{ required: true, message: '请上传视频' }]}>
           <Dragger {...draggerProps}>
@@ -379,7 +450,7 @@ export function KeyframesPage() {
           一键图生图
         </Button>
 
-        <Button>批量高清</Button>
+        <Button onClick={handleBatchImageHigh}>批量高清</Button>
 
         <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
           剪映合成
@@ -392,6 +463,7 @@ export function KeyframesPage() {
         grid={{ gutter: 16, column: 1 }}
         dataSource={keyframesDataSource}
         renderItem={renderListItem}
+        loading={pageResultLoading}
       ></List>
     </div>
   )

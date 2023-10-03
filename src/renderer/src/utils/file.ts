@@ -176,6 +176,15 @@ export function listFilesInDirectory(directoryPath: string) {
   }
 }
 
+export function writeToFile(content: string, filePath: string) {
+  try {
+    fs.writeFileSync(filePath, content, 'utf8')
+  } catch (error: any) {
+    console.error(`写入文件失败：${error.message}`)
+    throw error
+  }
+}
+
 export function writeJsonConfigToFile(config: any, filePath: string) {
   try {
     // 将配置对象转换为 JSON 字符串
@@ -215,5 +224,29 @@ export function checkAndCreateDirectory(directoryPath: string) {
     }
   } else {
     console.log(`目录已存在: ${directoryPath}`)
+  }
+}
+
+export function deleteDirectoryIfExists(directoryPath) {
+  if (fs.existsSync(directoryPath)) {
+    try {
+      const files = fs.readdirSync(directoryPath)
+
+      for (const file of files) {
+        const filePath = path.join(directoryPath, file)
+        if (fs.statSync(filePath).isFile()) {
+          fs.unlinkSync(filePath) // 删除文件
+        } else {
+          deleteDirectoryIfExists(filePath) // 递归删除子目录
+        }
+      }
+
+      fs.rmdirSync(directoryPath) // 删除目录
+      console.log(`目录已成功删除: ${directoryPath}`)
+    } catch (err) {
+      console.error(`删除目录失败: ${err}`)
+    }
+  } else {
+    console.log(`目录不存在: ${directoryPath}`)
   }
 }

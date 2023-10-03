@@ -1,7 +1,7 @@
 import { webSocket } from 'rxjs/webSocket'
 import { generateHash, generateRandomNumber } from './tool'
 import { lastValueFrom } from 'rxjs'
-import { getImage2ImageNextIndex } from './file'
+import { deleteDirectoryIfExists, getImage2ImageNextIndex } from './file'
 
 export type SDTaskChannelData = Partial<{
   // server
@@ -40,8 +40,11 @@ interface TaggerTaskDto {
 }
 
 export function createTaggerTask(data: TaggerTaskDto) {
+  // 关键词文件存在，不会覆盖重写
+  const { inputPath, outputPath } = data
+  deleteDirectoryIfExists(outputPath)
+
   return new Promise<void>((resolve, reject) => {
-    const { inputPath, outputPath } = data
     const subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
     // const session_hash = generateHash('taggerTask')
 
@@ -97,8 +100,7 @@ export function createTaggerTask(data: TaggerTaskDto) {
       resolve()
     }
 
-    function handleComplete() {
-    }
+    function handleComplete() {}
 
     function handleError(err) {
       reject(err)

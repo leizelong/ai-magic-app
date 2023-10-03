@@ -25,7 +25,7 @@ function App(): JSX.Element {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header style={{ padding: 0 }}>
-        <h1 style={{ color: '#fff', textAlign: 'center' }}>YouTube Downloader</h1>
+        <h1 style={{ color: '#fff', textAlign: 'center' }}>AI 一键创作</h1>
       </Header>
       <HashRouter>
         <Layout hasSider className="site-layout">

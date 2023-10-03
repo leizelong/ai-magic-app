@@ -17,6 +17,30 @@ export interface FrameDto {
   /** Frame包的pts的时间显示 */
   pkt_dts_time: string
 }
+// ffmpeg -i D:\ai-workspace\带某子逗阵\origin.mp4 -vf "select=eq(pict_type,B)" -fps_mode vfr -qscale:v 2 -f image2 D:\ai-workspace\带某子逗阵\keyframes-B/%05d.png
+// ffmpeg -i 666051400.mp4 -filter:v "select='gt(scene,0.1)',showinfo"
+
+// ffmpeg -i origin.mp4 -vf "select='gt(scene,1)',showinfo" -fps_mode vfr -qscale:v 2 -f image2 ./keyframes-test/%05d.png
+
+export function generateFramesB(targetPath: string, outputPath: string) {
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`${targetPath} does not exist`)
+  }
+  checkAndCreateDirectory(outputPath)
+  return exec(
+    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,B)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
+  )
+}
+
+export function generateFramesP(targetPath: string, outputPath: string) {
+  if (!fs.existsSync(targetPath)) {
+    throw new Error(`${targetPath} does not exist`)
+  }
+  checkAndCreateDirectory(outputPath)
+  return exec(
+    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,P)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
+  )
+}
 
 export function generateKeyframes(targetPath: string, outputPath: string) {
   if (!fs.existsSync(targetPath)) {
@@ -56,6 +80,9 @@ export async function getKeyFramesInfo(
     fileName: string
   }
 }> {
+  if (!fs.existsSync(keyFramesDir)) {
+    throw new Error(`KeyFramesDir: ${keyFramesDir} does not exist`)
+  }
   const frameRes = await getFrames(videoPath)
   const videoDurationS = await getVideoDuration(videoPath)
   const videoDuration = Number((videoDurationS * 1000 * 1000).toFixed(0))
@@ -104,11 +131,16 @@ export async function getKeyframesPaths(dirPath: string) {
   return new Promise<string[]>((resolve, reject) => {
     try {
       if (!fs.existsSync(dirPath)) {
-        reject(new Error(`directory "${dirPath}" does not exist`))
+        resolve([])
+        // reject(new Error(`directory "${dirPath}" does not exist`))
       }
       const files = fs.readdirSync(dirPath)
-      const filePaths = files.map((file) => {
-        return path.join(dirPath, file)
+      const filePaths: string[] = []
+      files.forEach((file) => {
+        if (path.extname(file) === '.png') {
+          const filePath = path.join(dirPath, file)
+          filePaths.push(filePath)
+        }
       })
       resolve(filePaths)
     } catch (error) {

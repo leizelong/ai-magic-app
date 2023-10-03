@@ -1,5 +1,6 @@
 import MD5 from 'crypto-js/md5'
 import { fs } from './module'
+import tipAudio from '../../../../resources/audio/完成提示音.mp3'
 
 type ExecOptions = Parameters<typeof window.api.child_process.exec>[1]
 
@@ -98,5 +99,18 @@ export function generateUUID() {
   return uuid
 }
 
+export function playSuccessMusic() {
+  // 加载音频文件
+  const audio = new Audio(tipAudio)
 
+  // 播放音频
+  audio.play()
+}
 
+export function sleep(time: number) {
+  return new Promise<void>((resolve, reject) => {
+    setTimeout(() => {
+      resolve()
+    }, time)
+  })
+}
