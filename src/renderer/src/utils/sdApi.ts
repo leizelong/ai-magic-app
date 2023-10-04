@@ -1,6 +1,6 @@
 import { webSocket } from 'rxjs/webSocket'
 import { generateHash, generateRandomNumber } from './tool'
-import { lastValueFrom } from 'rxjs'
+import { Subject, lastValueFrom } from 'rxjs'
 import { deleteDirectoryIfExists, getImage2ImageNextIndex } from './file'
 
 export type SDTaskChannelData = Partial<{
@@ -165,8 +165,13 @@ export function createImage2ImageTask(data: Image2ImageTaskDto) {
     } = data
 
     const randomSeed = seed || generateRandomNumber()
-
-    const subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
+    let subject: Subject<any>
+    try {
+      subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
+    } catch (error) {
+      throw reject(error)
+    }
+    // const subject = webSocket<SDTaskChannelData>(TaskWsQueueUrl)
     const taskNameHash = `task(${generateHash('taskName', 15)})`
 
     const img2imgDir = 'D:\\novelai-webui-aki-v3\\outputs\\img2img-images'

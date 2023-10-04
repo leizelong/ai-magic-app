@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputNumber } from 'antd'
@@ -65,6 +65,7 @@ interface KeyframeDto {
   // img2imgFilePath?: string
   img2imgLoading?: boolean
   img2imgOutputFilePath?: string
+  imgHighDefinitionFilePath?: string
   seed?: string
 }
 
@@ -87,7 +88,8 @@ export function KeyframesPage() {
 
   const forceUpdate = autoUpdateId()
 
-  const [keyframesDataSource, setKeyframesDataSource] = useState<KeyframeDto[]>([])
+  // const [keyframesDataSource, setKeyframesDataSource] = useState<KeyframeDto[]>([])
+  const keyFramesDataSourceRef = useRef<KeyframeDto[]>([])
 
   // const videoPath = Form.useWatch('videoPath', form)
 
@@ -136,28 +138,34 @@ export function KeyframesPage() {
   async function updateKeyframesData() {
     try {
       setPageResultLoading(true)
-      // await sleep(3000)
-      const { keyframesOutputPath, taggerOutputPath, image2ImageOutputPath } =
-        await getProjectAllPaths()
+      const {
+        keyframesOutputPath,
+        taggerOutputPath,
+        image2ImageOutputPath,
+        image2ImageHighOutputPath
+      } = await getProjectAllPaths()
 
       const filePaths = await getKeyframesPaths(keyframesOutputPath)
       const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
       const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
+      const imageHighDefinitionOutputMap = readImage2ImageDirectory(image2ImageHighOutputPath)
 
       const data: KeyframeDto[] = filePaths.map((filePath) => {
         const name = extractFileNameWithoutExtension(filePath)
         const prompt = promptsMap.get(name)
         const { seed, filePath: img2imgOutputFilePath } = image2ImageOutputMap.get(name) || {}
-
+        const { filePath: imgHighDefinitionFilePath } = imageHighDefinitionOutputMap.get(name) || {}
         return {
           filePath,
           name,
           prompt,
           seed,
-          img2imgOutputFilePath
+          img2imgOutputFilePath,
+          imgHighDefinitionFilePath
         }
       })
-      setKeyframesDataSource(data)
+      keyFramesDataSourceRef.current = data
+      forceUpdate()
     } catch (error: any) {
       message.error(error.message)
     } finally {
@@ -178,12 +186,13 @@ export function KeyframesPage() {
       await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
-      await updateKeyframesData()
+      // await updateKeyframesData()
 
       message.success('生成关键帧成功')
       playSuccessMusic()
     } catch (error: any) {
       message.error(error.message)
+      throw error
     } finally {
       setKeyframesLoading(false)
     }
@@ -201,6 +210,7 @@ export function KeyframesPage() {
       playSuccessMusic()
     } catch (error: any) {
       message.error(error.message)
+      throw error
     } finally {
       setTaggerLoading(false)
     }
@@ -209,14 +219,18 @@ export function KeyframesPage() {
   async function handleBatchImage2Image() {
     try {
       setImg2ImgLoading(true)
-      for (let index = 0; index < keyframesDataSource.length; index++) {
-        const keyframe = keyframesDataSource[index]
+      if (!keyFramesDataSourceRef.current.length) {
+        throw new Error('keyframesDataSource 是空的')
+      }
+      for (let index = 0; index < keyFramesDataSourceRef.current.length; index++) {
+        const keyframe = keyFramesDataSourceRef.current[index]
         await handleImg2Img(keyframe, index, true)
       }
       message.success('批量图生图成功')
       playSuccessMusic()
     } catch (error: any) {
       message.error(error.message)
+      throw error
     } finally {
       setImg2ImgLoading(false)
     }
@@ -250,19 +264,19 @@ export function KeyframesPage() {
     const values = await form.validateFields()
     const { image2ImageOutputPath } = await getProjectAllPaths()
     const { randomSeed, redrawFactor } = values
-    if (isBatch && keyframesDataSource[index].img2imgOutputFilePath) {
+    if (isBatch && keyFramesDataSourceRef.current[index].img2imgOutputFilePath) {
       // 批量处理，有图就跳过吧
       return
     }
     const { prompt = '', filePath, name } = item
     const imgBase64 = readFileToBase64(filePath)
     try {
-      if (keyframesDataSource[index].img2imgOutputFilePath) {
+      if (keyFramesDataSourceRef.current[index].img2imgOutputFilePath) {
         // delete 原图
-        await deleteFileAsync(keyframesDataSource[index].img2imgOutputFilePath)
+        await deleteFileAsync(keyFramesDataSourceRef.current[index].img2imgOutputFilePath)
       }
-      keyframesDataSource[index].img2imgLoading = true
-      keyframesDataSource[index].img2imgOutputFilePath = ''
+      keyFramesDataSourceRef.current[index].img2imgLoading = true
+      keyFramesDataSourceRef.current[index].img2imgOutputFilePath = ''
       forceUpdate()
       const [img2imgOutputFilePath, seed] = await createImage2ImageTask({
         prompt,
@@ -271,14 +285,14 @@ export function KeyframesPage() {
         seed: randomSeed
       })
 
-      keyframesDataSource[index].img2imgOutputFilePath = img2imgOutputFilePath
+      keyFramesDataSourceRef.current[index].img2imgOutputFilePath = img2imgOutputFilePath
       const targetFilePath = copyFileToDirectory(
         img2imgOutputFilePath,
         image2ImageOutputPath,
         `${name}-${seed}.png`
       )
-      keyframesDataSource[index].seed = seed
-      keyframesDataSource[index].img2imgOutputFilePath = targetFilePath
+      keyFramesDataSourceRef.current[index].seed = seed
+      keyFramesDataSourceRef.current[index].img2imgOutputFilePath = targetFilePath
       if (!isBatch) {
         message.success('图生图成功')
         playSuccessMusic()
@@ -286,7 +300,7 @@ export function KeyframesPage() {
     } catch (error: any) {
       message.error(error.message)
     } finally {
-      keyframesDataSource[index].img2imgLoading = false
+      keyFramesDataSourceRef.current[index].img2imgLoading = false
       forceUpdate()
     }
   }
@@ -318,7 +332,7 @@ export function KeyframesPage() {
     const value = e.target.value
     const { taggerOutputPath } = getProjectAllPaths()
     const promptPath = path.join(taggerOutputPath, `${item.name}.txt`)
-    keyframesDataSource[index].prompt = value
+    keyFramesDataSourceRef.current[index].prompt = value
     forceUpdate()
     writeToFile(value, promptPath)
   }
@@ -336,8 +350,17 @@ export function KeyframesPage() {
     }
   }
 
+  async function handleTotalSteps() {
+    await handleGenerate()
+    await handleTaggerPrompts()
+    await handleBatchImage2Image()
+    await handleBatchHighImage()
+    await handleCombineVideo()
+  }
+
   function renderListItem(item: KeyframeDto, index: number) {
-    const { filePath, prompt, img2imgLoading, img2imgOutputFilePath } = item
+    const { filePath, prompt, img2imgLoading, img2imgOutputFilePath, imgHighDefinitionFilePath } =
+      item
 
     return (
       <List.Item>
@@ -352,8 +375,6 @@ export function KeyframesPage() {
             defaultValue={prompt}
             style={{ width: 300, height: '100%' }}
             autoSize={{ minRows: 8, maxRows: 8 }}
-            // onChange={handlePromptComplete}
-            // onPressEnter={(e) => handlePromptComplete(e, item, index)}
             onBlur={(e) => handlePromptComplete(e, item, index)}
           ></Input.TextArea>
 
@@ -372,6 +393,14 @@ export function KeyframesPage() {
 
           <Space direction="horizontal">
             <LocalImage className="keyframe_image" filePath={img2imgOutputFilePath}></LocalImage>
+          </Space>
+
+          {img2imgOutputFilePath && <Space direction="horizontal">{`==>`}</Space>}
+          <Space direction="horizontal">
+            <LocalImage
+              className="keyframe_image"
+              filePath={imgHighDefinitionFilePath}
+            ></LocalImage>
           </Space>
         </Space>
       </List.Item>
@@ -452,32 +481,43 @@ export function KeyframesPage() {
           ></InputNumber>
         </Form.Item>
       </Form>
+      <Space direction="vertical" style={{ marginBottom: 24 }}>
+        <Space direction="horizontal">
+          <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
+            生成关键帧
+          </Button>
+          <Button type="primary" onClick={handleTaggerPrompts} loading={taggerLoading}>
+            一键反推提示词
+          </Button>
+          <Button type="primary" onClick={handleBatchImage2Image} loading={img2imgLoading}>
+            一键图生图
+          </Button>
 
-      <Space direction="horizontal" style={{ marginBottom: 24 }}>
-        <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
-          生成关键帧
-        </Button>
-        <Button type="primary" onClick={handleTaggerPrompts} loading={taggerLoading}>
-          一键反推提示词
-        </Button>
-        <Button type="primary" onClick={handleBatchImage2Image} loading={img2imgLoading}>
-          一键图生图
-        </Button>
+          <Button
+            type="primary"
+            onClick={handleBatchHighImage}
+            loading={batchHighDefinitionLoading}
+          >
+            批量高清
+          </Button>
 
-        <Button type="primary" onClick={handleBatchHighImage} loading={batchHighDefinitionLoading}>
-          批量高清
-        </Button>
+          <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
+            剪映合成
+          </Button>
 
-        <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
-          剪映合成
-        </Button>
+          <Button>自动补齐帧</Button>
+        </Space>
 
-        <Button>自动补齐帧</Button>
+        <Space direction="horizontal">
+          <Button type="primary" onClick={handleTotalSteps}>
+            一键生成
+          </Button>
+        </Space>
       </Space>
 
       <List
         grid={{ gutter: 16, column: 1 }}
-        dataSource={keyframesDataSource}
+        dataSource={keyFramesDataSourceRef.current}
         renderItem={renderListItem}
         loading={pageResultLoading}
       ></List>

@@ -1,3 +1,4 @@
+import { isDirectoryEmpty } from './file'
 import { child_process, path } from './module'
 
 const { spawn } = child_process
@@ -19,6 +20,10 @@ export function batchHighDefinition(
   resolution: string = '1440x1080'
 ) {
   return new Promise<void>((resolve, reject) => {
+    if (isDirectoryEmpty(inputDirectory)) {
+      reject(new Error(`${inputDirectory} 目录是空的`))
+    }
+
     const pythonProcess = spawn('python', [
       pythonScript,
       inputDirectory,

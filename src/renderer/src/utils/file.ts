@@ -250,3 +250,12 @@ export function deleteDirectoryIfExists(directoryPath) {
     console.log(`目录不存在: ${directoryPath}`)
   }
 }
+
+export function isDirectoryEmpty(directoryPath: string) {
+  try {
+    const files = fs.readdirSync(directoryPath)
+    return files.length === 0
+  } catch (err) {
+    return false
+  }
+}
