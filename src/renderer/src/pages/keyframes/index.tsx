@@ -95,7 +95,7 @@ export function KeyframesPage() {
 
   const initialValues: Partial<FormValue> = {
     redrawFactor: 0.7,
-    projectDirectoryPath: 'D:\\ai-workspace\\好声音第一集-1'
+    projectDirectoryPath: 'D:\\ai-workspace\\当众亲吻校花'
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
     // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -242,6 +242,7 @@ export function KeyframesPage() {
       const { image2ImageHighOutputPath, image2ImageOutputPath } = getProjectAllPaths()
       checkAndCreateDirectory(image2ImageHighOutputPath)
       await batchHighDefinition(image2ImageOutputPath, image2ImageHighOutputPath)
+      updateKeyframesData();
       message.success('批量高清成功')
       playSuccessMusic()
     } catch (error: any) {
@@ -395,13 +396,13 @@ export function KeyframesPage() {
             <LocalImage className="keyframe_image" filePath={img2imgOutputFilePath}></LocalImage>
           </Space>
 
-          {img2imgOutputFilePath && <Space direction="horizontal">{`==>`}</Space>}
+          {/* {img2imgOutputFilePath && <Space direction="horizontal">{`==>`}</Space>}
           <Space direction="horizontal">
             <LocalImage
               className="keyframe_image"
               filePath={imgHighDefinitionFilePath}
             ></LocalImage>
-          </Space>
+          </Space> */}
         </Space>
       </List.Item>
     )
