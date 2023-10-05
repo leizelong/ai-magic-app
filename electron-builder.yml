@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: electron-youtube-downloader
+productName: ai-magic-app
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: electron-youtube-downloader
+  executableName: ai-magic-app
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

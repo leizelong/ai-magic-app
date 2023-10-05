@@ -1,4 +1,4 @@
-# electron-youtube-downloader
+# ai-magic-app
 
 An Electron application with React and TypeScript
 
