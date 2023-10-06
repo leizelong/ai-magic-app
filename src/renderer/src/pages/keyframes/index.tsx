@@ -1,7 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { InboxOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
-import { Button, Form, Input, message, Space, Upload, FormInstance, List, InputNumber } from 'antd'
+import {
+  Button,
+  Form,
+  Input,
+  message,
+  Space,
+  Upload,
+  FormInstance,
+  List,
+  InputNumber,
+  Select
+} from 'antd'
 import './index.scss'
 import { exec, generateHash, playSuccessMusic, sleep } from '@renderer/utils/tool'
 import {
@@ -13,12 +24,7 @@ import {
   getKeyframesPaths
 } from '@renderer/utils/frame'
 import { LocalImage } from '@renderer/components/LocalImage'
-import {
-  SDTaskChannelData,
-  createBatchImage2ImageTask,
-  createImage2ImageTask,
-  createTaggerTask
-} from '@renderer/utils/sdApi'
+import { createImage2ImageTask, createTaggerTask } from '@renderer/utils/sdApi'
 import {
   checkAndCreateDirectory,
   copyFileToDirectory,
@@ -34,6 +40,7 @@ import { combineJianYingVideo } from '@renderer/utils/jianYing'
 import { path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
 import { batchHighDefinition } from '@renderer/utils/high-definition'
+import { SDModelDto, SDModelList } from '@renderer/constants/sd-model'
 
 const { Dragger } = Upload
 
@@ -46,6 +53,7 @@ interface FormValue {
   randomSeed?: string
   redrawFactor?: number
   projectDirectoryPath: string
+  model: SDModelDto
 }
 
 interface ProjectAllDirectory {
@@ -95,7 +103,8 @@ export function KeyframesPage() {
 
   const initialValues: Partial<FormValue> = {
     redrawFactor: 0.7,
-    projectDirectoryPath: 'D:\\ai-workspace\\当众亲吻校花'
+    model: SDModelList[0],
+    projectDirectoryPath: 'D:\\ai-workspace\\坏脾气女友-6'
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
     // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -144,7 +153,6 @@ export function KeyframesPage() {
         image2ImageOutputPath,
         image2ImageHighOutputPath
       } = await getProjectAllPaths()
-
       const filePaths = await getKeyframesPaths(keyframesOutputPath)
       const promptsMap = readTxtFilesInDirectory(taggerOutputPath)
       const image2ImageOutputMap = readImage2ImageDirectory(image2ImageOutputPath)
@@ -186,7 +194,7 @@ export function KeyframesPage() {
       await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
-      // await updateKeyframesData()
+      await updateKeyframesData()
 
       message.success('生成关键帧成功')
       playSuccessMusic()
@@ -242,7 +250,7 @@ export function KeyframesPage() {
       const { image2ImageHighOutputPath, image2ImageOutputPath } = getProjectAllPaths()
       checkAndCreateDirectory(image2ImageHighOutputPath)
       await batchHighDefinition(image2ImageOutputPath, image2ImageHighOutputPath)
-      updateKeyframesData();
+      updateKeyframesData()
       message.success('批量高清成功')
       playSuccessMusic()
     } catch (error: any) {
@@ -264,7 +272,7 @@ export function KeyframesPage() {
   async function handleImg2Img(item: KeyframeDto, index: number, isBatch?: boolean) {
     const values = await form.validateFields()
     const { image2ImageOutputPath } = await getProjectAllPaths()
-    const { randomSeed, redrawFactor } = values
+    const { randomSeed, redrawFactor, model } = values
     if (isBatch && keyFramesDataSourceRef.current[index].img2imgOutputFilePath) {
       // 批量处理，有图就跳过吧
       return
@@ -283,7 +291,8 @@ export function KeyframesPage() {
         prompt,
         imgBase64,
         redraw: redrawFactor,
-        seed: randomSeed
+        seed: randomSeed,
+        model
       })
 
       keyFramesDataSourceRef.current[index].img2imgOutputFilePath = img2imgOutputFilePath
@@ -373,6 +382,7 @@ export function KeyframesPage() {
 
           <Input.TextArea
             // value={prompt}
+            key={prompt}
             defaultValue={prompt}
             style={{ width: 300, height: '100%' }}
             autoSize={{ minRows: 8, maxRows: 8 }}
@@ -396,13 +406,17 @@ export function KeyframesPage() {
             <LocalImage className="keyframe_image" filePath={img2imgOutputFilePath}></LocalImage>
           </Space>
 
-          {/* {img2imgOutputFilePath && <Space direction="horizontal">{`==>`}</Space>}
-          <Space direction="horizontal">
-            <LocalImage
-              className="keyframe_image"
-              filePath={imgHighDefinitionFilePath}
-            ></LocalImage>
-          </Space> */}
+          {img2imgOutputFilePath && (
+            <>
+              <Space direction="horizontal">{`=>`}</Space>
+              <Space direction="horizontal">
+                <LocalImage
+                  className="keyframe_image"
+                  filePath={imgHighDefinitionFilePath}
+                ></LocalImage>
+              </Space>
+            </>
+          )}
         </Space>
       </List.Item>
     )
@@ -468,6 +482,7 @@ export function KeyframesPage() {
         <Form.Item name="randomSeed" label="采样种子">
           <InputNumber disabled style={{ width: 150 }}></InputNumber>
         </Form.Item>
+
         <Form.Item
           name="redrawFactor"
           label="重绘系数"
@@ -480,6 +495,9 @@ export function KeyframesPage() {
             precision={1}
             step={0.1}
           ></InputNumber>
+        </Form.Item>
+        <Form.Item name="model" label="模型" rules={[{ required: true, message: '模型必填' }]}>
+          <Select style={{ width: 200 }} options={SDModelList} labelInValue></Select>
         </Form.Item>
       </Form>
       <Space direction="vertical" style={{ marginBottom: 24 }}>

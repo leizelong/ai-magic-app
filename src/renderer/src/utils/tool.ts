@@ -114,3 +114,27 @@ export function sleep(time: number) {
     }, time)
   })
 }
+
+function isChineseCharacter(character) {
+  const chineseCharacterRegex = /[\u4e00-\u9fa5]/;
+  return chineseCharacterRegex.test(character);
+}
+
+export function stringToUnicode(input) {
+  let unicodeString = "";
+  for (let i = 0; i < input.length; i++) {
+    if (isChineseCharacter(input[i])) {
+      const charCode = input.charCodeAt(i).toString(16); // 获取字符的Unicode编码并转换为16进制
+      unicodeString += `\\\\u${charCode.padStart(4, "0")}`; // 补齐4位，然后加上\\u前缀
+    } else {
+      unicodeString += input[i];
+    }
+  }
+  return unicodeString;
+}
+
+export function unicodeToString(unicodeString) {
+  return unicodeString.replace(/\\u(\w{4})/g, function (match, group) {
+    return String.fromCharCode(parseInt(group, 16));
+  });
+}

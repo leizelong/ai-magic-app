@@ -24,5 +24,5 @@ export function LocalImage(props: LocalImageProps) {
     fetchUrl()
   }, [filePath])
   // const localUrl = filePath && fileToUrl(filePath)
-  return <Image src={url}  {...rest}></Image>
+  return <Image src={filePath ? url : fallBase64} {...rest}></Image>
 }
