@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: ai-magic-app
+productName: 绘世
 directories:
   buildResources: build
 files:
