@@ -30,8 +30,8 @@ export type SDTaskChannelData = Partial<{
 
 export const TaskWsQueueUrl = 'ws://127.0.0.1:7860/queue/join'
 
-export const TaggerFnIndex = 926
-export const Image2ImageFnIndex = 770
+export const TaggerFnIndex = 1133
+export const Image2ImageFnIndex = 940
 
 const session_hash = generateHash('session_hash')
 
@@ -223,13 +223,11 @@ export function createImage2ImageTask(data: Image2ImageTaskDto) {
           height,
           width,
           // 0.4,
-          redraw,
+          1,
           'Just resize',
           'Whole picture',
           32,
           'Inpaint masked',
-          // 'D:\\ai-workspace\\好声音第一集\\keyframes',
-          // 'D:\\ai-workspace\\好声音第一集\\keyframes-output',
           '',
           '',
           '',
@@ -307,7 +305,8 @@ export function createImage2ImageTask(data: Image2ImageTaskDto) {
           0,
           false,
           false,
-          '',
+          "start",
+          "",
           '<p style="margin-bottom:0.75em">Will upscale the image by the selected scale factor; use width and height sliders to set tile size</p>',
           64,
           'None',
