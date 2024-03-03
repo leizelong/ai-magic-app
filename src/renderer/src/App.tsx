@@ -12,9 +12,10 @@ import { KeyframesPage } from './pages/keyframes'
 type MenuItem = Required<MenuProps>['items'][number]
 
 const menus: MenuItem[] = [
-  { label: <Link to="/search">Download</Link>, key: 'search' },
+  { label: <Link to="/search">视频下载</Link>, key: 'search' },
+  { label: <Link to="/search">去水印</Link>, key: 'search' },
   {
-    label: <Link to="/keyframes">keyframes</Link>,
+    label: <Link to="/keyframes">一键创作</Link>,
     key: 'keyframes'
   }
 ]

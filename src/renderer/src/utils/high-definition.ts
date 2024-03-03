@@ -24,21 +24,23 @@ export function batchHighDefinition(
       reject(new Error(`${inputDirectory} 目录是空的`))
     }
 
-    const pythonProcess = spawn('python', [
-      pythonScript,
-      inputDirectory,
-      outputDirectory,
-      resolution
-    ])
+    const pythonProcess = spawn(
+      'python',
+      [pythonScript, inputDirectory, outputDirectory, resolution],
+      { timeout: 1000, shell: true }
+    )
+
 
     // 监听Python脚本的标准输出
-    pythonProcess.stdout.on('data', () => {
+    pythonProcess.stdout?.on('data', (data) => {
+      console.log(`stdout: ${data}`);
       resolve()
     })
 
     // 监听Python脚本的标准错误输出
     pythonProcess.stderr.on('data', (error) => {
-      reject(error)
+      console.log(`stderr: ${error}`);
+      reject(new Error(`${error}`))
     })
 
     // 监听Python脚本的退出事件

@@ -1,8 +1,9 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
-import child_process, { ChildProcess, exec, execSync, spawn, spawnSync } from 'child_process'
+import  { ChildProcess, exec, execSync, spawn, spawnSync } from 'child_process'
+import * as child_process from 'child_process'
+
 import path from 'path'
 import fs from 'fs'
-
 declare global {
   interface Window {
     electron: ElectronAPI

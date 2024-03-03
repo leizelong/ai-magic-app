@@ -2,6 +2,8 @@ import os
 from PIL import Image
 import sys
 
+# pip3 install Pillow
+
 # 输入文件夹路径
 input_folder = sys.argv[1]
 
