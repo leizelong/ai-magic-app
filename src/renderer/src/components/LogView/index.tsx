@@ -18,6 +18,7 @@ export function LogView(props: LogViewProps) {
     if (!$log) return
     setLogStr('')
     const subscribe = $log.subscribe((data) => {
+      // console.log(`data :>> ${data}`)
       const dataStr = data.toString()
       setLogStr((preLogStr) => preLogStr + dataStr)
     })

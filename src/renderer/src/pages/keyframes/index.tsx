@@ -191,7 +191,7 @@ export function KeyframesPage() {
       const { videoPath, keyframesOutputPath, framesPOutputPath } = await getProjectAllPaths()
 
       // 生成P帧，弥补I帧
-      await generateFramesP(videoPath, framesPOutputPath)
+      // await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
       await updateKeyframesData()
@@ -523,8 +523,6 @@ export function KeyframesPage() {
           <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
             剪映合成
           </Button>
-
-          <Button>自动补齐帧</Button>
         </Space>
 
         <Space direction="horizontal">

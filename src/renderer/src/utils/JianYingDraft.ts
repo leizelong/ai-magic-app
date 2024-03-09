@@ -1041,6 +1041,34 @@ interface GenerateDraftContentDto {
     fileName: string
   }>
 }
+/**
+"common_keyframes": [
+  {
+    "id": "48e511ad-70d9-4671-8ba0-a661447c2880",
+    "keyframe_list": [
+      {
+        "curveType": "Line",
+        "graphID": "",
+        "id": "44f6aa07-bebb-4b07-bdb3-583f1d7663e1",
+        "left_control": { "x": 0.0, "y": 0.0 },
+        "right_control": { "x": 0.0, "y": 0.0 },
+        "time_offset": 33333,
+        "values": [-0.16666666666666666]
+      },
+      {
+        "curveType": "Line",
+        "graphID": "",
+        "id": "91fcc18a-ebea-4b15-b1c9-21471539a8f4",
+        "left_control": { "x": 0.0, "y": 0.0 },
+        "right_control": { "x": 0.0, "y": 0.0 },
+        "time_offset": 1733333,
+        "values": [0.16666666666666666]
+      }
+    ],
+    "property_type": "KFTypePositionY"
+  }
+],
+*/
 
 /** draft_content.json => draft_content.json.back, template-2.tmp */
 export function generateDraftContent(data: GenerateDraftContentDto) {
@@ -1278,6 +1306,7 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
       const videoMaterialRef = videos[index]
 
       const { duration: keyFrameDuration, start: keyFrameStart } = keyFrame
+      const direction = index % 2 === 0 ? 1 : -1
 
       return {
         cartoon: false,
@@ -1285,10 +1314,35 @@ export function generateDraftContent(data: GenerateDraftContentDto) {
           alpha: 1.0,
           flip: { horizontal: false, vertical: false },
           rotation: 0.0,
-          scale: { x: 1.0, y: 1.0 },
+          scale: { x: 1.33, y: 1.33 },
           transform: { x: 0.0, y: 0.0 }
         },
-        common_keyframes: [],
+        common_keyframes: [
+          {
+            id: generateUUID(),
+            keyframe_list: [
+              {
+                curveType: 'Line',
+                graphID: '',
+                id: generateUUID(),
+                left_control: { x: 0.0, y: 0.0 },
+                right_control: { x: 0.0, y: 0.0 },
+                time_offset: 33333,
+                values: [-0.16666666666666666 * direction]
+              },
+              {
+                curveType: 'Line',
+                graphID: '',
+                id: generateUUID(),
+                left_control: { x: 0.0, y: 0.0 },
+                right_control: { x: 0.0, y: 0.0 },
+                time_offset: keyFrameDuration - 33333,
+                values: [0.16666666666666666 * direction]
+              }
+            ],
+            property_type: 'KFTypePositionY'
+          }
+        ],
         enable_adjust: true,
         enable_color_curves: true,
         enable_color_wheels: true,

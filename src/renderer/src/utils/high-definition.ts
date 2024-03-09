@@ -32,7 +32,7 @@ export function batchHighDefinition(
 
 
     // 监听Python脚本的标准输出
-    pythonProcess.stdout?.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
       resolve()
     })
