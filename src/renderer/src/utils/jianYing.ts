@@ -19,17 +19,12 @@ const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
 
 const projectRootDirectory = process.cwd() || ''
 
-console.log('projectRootDirectory :>> ', projectRootDirectory)
-
 const prodResourcePath = path.join(path.dirname(path.dirname(__dirname)), 'resources')
 const devResourcePath = path.join(projectRootDirectory, 'resources')
 
 const resourcePath = isProd ? prodResourcePath : devResourcePath
 
 const JianYingTemplateDir = path.join(resourcePath, 'templates', 'JianYingDraft')
-
-
-console.log('JianYingTemplateDir :>> ', JianYingTemplateDir)
 
 interface CombineJianYingVideoDto {
   keyFrameList: DraftKeyFrameDto[]
