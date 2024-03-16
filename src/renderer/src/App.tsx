@@ -8,12 +8,13 @@ import { useState } from 'react'
 import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import { SearchPage } from './pages/search'
 import { KeyframesPage } from './pages/keyframes'
+import { VideoDownload } from './pages/video-download'
 
 type MenuItem = Required<MenuProps>['items'][number]
 
 const menus: MenuItem[] = [
-  { label: <Link to="/search">视频下载</Link>, key: 'search' },
-  { label: <Link to="/search">去水印</Link>, key: 'search' },
+  { label: <Link to="/download">视频下载</Link>, key: 'download' },
+  { label: <Link to="/remove-water">去水印</Link>, key: 'remove-water' },
   {
     label: <Link to="/keyframes">一键创作</Link>,
     key: 'keyframes'
@@ -37,7 +38,7 @@ function App(): JSX.Element {
           <Content style={{ padding: 16 }}>
             <Routes>
               <Route path="/" Component={KeyframesPage} />
-              <Route path="/search" Component={SearchPage} />
+              <Route path="/download" Component={VideoDownload} />
               <Route path="/keyframes" Component={KeyframesPage} />
             </Routes>
           </Content>
