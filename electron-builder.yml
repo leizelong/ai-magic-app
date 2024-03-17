@@ -12,6 +12,7 @@ files:
 asarUnpack:
   - resources/**
   - .cache/**
+  - templates/**
 win:
   executableName: ai-magic-app
 nsis:

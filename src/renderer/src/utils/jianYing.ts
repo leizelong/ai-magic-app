@@ -9,7 +9,7 @@
 
 // import { app } from 'electron'
 import { generateDraftContent, generateDraftMetaInfo } from './JianYingDraft'
-import { isProd } from './common'
+import { getUnpackPath } from './common'
 import { extractAudioFromVideoAsync } from './ffmpeg'
 import { copyDirectoryContents } from './file'
 import { DraftKeyFrameDto } from './frame'
@@ -17,14 +17,7 @@ import { path } from './module'
 
 const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
 
-const projectRootDirectory = process.cwd() || ''
-
-const prodResourcePath = path.join(path.dirname(path.dirname(__dirname)), 'resources')
-const devResourcePath = path.join(projectRootDirectory, 'resources')
-
-const resourcePath = isProd ? prodResourcePath : devResourcePath
-
-const JianYingTemplateDir = path.join(resourcePath, 'templates', 'JianYingDraft')
+const JianYingTemplateDir = getUnpackPath('templates', 'JianYingDraft')
 
 interface CombineJianYingVideoDto {
   keyFrameList: DraftKeyFrameDto[]
