@@ -15,6 +15,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "postinstall": "patch-package && electron-builder install-app-deps",
+    "install-chrome:win": "mkdir -p .cache/puppeteer && cd .cache/puppeteer && npx @puppeteer/browsers install chrome@stable --platform win64",
     "build:win": "npm run build && electron-builder --win --config",
     "build:mac": "electron-vite build && electron-builder --mac --config",
     "build:linux": "electron-vite build && electron-builder --linux --config"
@@ -29,6 +30,7 @@
     "fs-extra": "^11.1.1",
     "lodash": "^4.17.21",
     "markdown-it": "^13.0.1",
+    "puppeteer": "^22.5.0",
     "react-router": "^6.16.0",
     "react-router-dom": "^6.16.0",
     "rxjs": "^7.8.1"

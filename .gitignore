@@ -4,3 +4,4 @@ out
 *.log*
 download/*
 # video-download/
+.cache
