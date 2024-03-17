@@ -5,9 +5,11 @@ import { useForm } from 'antd/es/form/Form'
 import { fs, path } from '@renderer/utils/module'
 import { execCommand } from '@renderer/utils/common'
 import { getMedia } from '@renderer/utils/viode'
+import { useState } from 'react'
 
 export function VideoDownload() {
   const [form] = useForm()
+  const [loading, setLoading] = useState(false)
 
   function getTitleByShareUrl(str: string) {
     const res = str.match(/.*(https)/)
@@ -22,12 +24,12 @@ export function VideoDownload() {
   }
 
   const handleDownload = async () => {
+    setLoading(true)
     const values = await form.validateFields()
     const regex = /(https?:\/\/[^\s]+)/g
     const result = values.url.match(regex)
     const shareUrl = result?.[0]
     const title = getTitleByShareUrl(values.url)
-    debugger
     try {
       if (!shareUrl) {
         throw new Error('没有找到https链接')
@@ -56,6 +58,8 @@ export function VideoDownload() {
       message.success('下载成功')
     } catch (error: any) {
       message.error(error.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -82,7 +86,7 @@ export function VideoDownload() {
       </div>
 
       <div>
-        <Button type="primary" onClick={handleDownload}>
+        <Button type="primary" onClick={handleDownload} loading={loading}>
           Download
         </Button>
       </div>

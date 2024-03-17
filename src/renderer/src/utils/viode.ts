@@ -63,6 +63,6 @@ export async function getMedia(shareUrl: string) {
     setTimeout(() => {
       reject(new Error('等待超时'))
       browser.close()
-    }, 1000 * 20)
+    }, 1000 * 60)
   })
 }
