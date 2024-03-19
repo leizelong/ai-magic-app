@@ -6,6 +6,7 @@ import { fs, path } from '@renderer/utils/module'
 import { execCommand } from '@renderer/utils/common'
 import { getMedia } from '@renderer/utils/viode'
 import { useState } from 'react'
+import { getSettingConfig, playSuccessMusic, updateSettingConfig } from '@renderer/utils/tool'
 
 export function VideoDownload() {
   const [form] = useForm()
@@ -24,20 +25,24 @@ export function VideoDownload() {
   }
 
   const handleDownload = async () => {
-    setLoading(true)
     const values = await form.validateFields()
+
     const regex = /(https?:\/\/[^\s]+)/g
     const result = values.url.match(regex)
     const shareUrl = result?.[0]
     const title = getTitleByShareUrl(values.url)
     try {
+      setLoading(true)
+
       if (!shareUrl) {
         throw new Error('没有找到https链接')
       }
-      const mediaUrl = await getMedia(shareUrl)
-      const downloadDir = path.join(process.cwd(), 'download')
-      const fileName = `${values.name || title || 'download'}.mp4`
+      const settingConfig = await getSettingConfig()
+      const downloadDir = path.join(settingConfig.workspacePath, values.alias)
+      updateSettingConfig({ lastProjectPath: downloadDir })
+      const fileName = `download.mp4`
       const filePath = path.join(downloadDir, fileName)
+      const mediaUrl = await getMedia(shareUrl)
       // 确保目标目录存在，如果不存在则创建
       if (!fs.existsSync(downloadDir)) {
         fs.mkdirSync(downloadDir, { recursive: true })
@@ -55,6 +60,7 @@ export function VideoDownload() {
         // 'test.mp4',
         filePath
       ])
+      playSuccessMusic()
       message.success('下载成功')
     } catch (error: any) {
       message.error(error.message)
@@ -76,9 +82,9 @@ export function VideoDownload() {
             <Input.TextArea allowClear autoSize={{ minRows: 3, maxRows: 6 }}></Input.TextArea>
           </Form.Item>
           <Form.Item
-            // rules={[{ required: true, message: '不能为空' }]}
-            label="视频名称"
-            name={'name'}
+            rules={[{ required: true, message: '不能为空' }]}
+            label="作品别名"
+            name={'alias'}
           >
             <Input allowClear></Input>
           </Form.Item>

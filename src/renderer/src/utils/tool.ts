@@ -1,5 +1,5 @@
 import MD5 from 'crypto-js/md5'
-import { fs } from './module'
+import { child_process, fs, path } from './module'
 import tipAudio from '../../../../resources/audio/完成提示音.mp3'
 
 type ExecOptions = Parameters<typeof window.api.child_process.exec>[1]
@@ -10,12 +10,15 @@ type ExecConfig = {
 
 export function exec<T = any>(cmd: string, options?: ExecOptions, config?: ExecConfig) {
   return new Promise<T>((resolve, reject) => {
-    window.api.child_process.exec(cmd, options, (err, stdout, stderr) => {
+    child_process.exec(cmd, options, (err, stdout, stderr) => {
+      console.log('exec cmd :>> ', cmd)
+
       if (err) {
         reject(err)
       }
-
       try {
+        console.log('stdout.toString() :>> ', stdout.toString())
+        console.log('stderr.toString() :>> ', stderr.toString())
         // const info = JSON.parse(stdout.toString())
         // resolve(info)
         if (!config?.json) {
@@ -116,25 +119,58 @@ export function sleep(time: number) {
 }
 
 function isChineseCharacter(character) {
-  const chineseCharacterRegex = /[\u4e00-\u9fa5]/;
-  return chineseCharacterRegex.test(character);
+  const chineseCharacterRegex = /[\u4e00-\u9fa5]/
+  return chineseCharacterRegex.test(character)
 }
 
 export function stringToUnicode(input) {
-  let unicodeString = "";
+  let unicodeString = ''
   for (let i = 0; i < input.length; i++) {
     if (isChineseCharacter(input[i])) {
-      const charCode = input.charCodeAt(i).toString(16); // 获取字符的Unicode编码并转换为16进制
-      unicodeString += `\\\\u${charCode.padStart(4, "0")}`; // 补齐4位，然后加上\\u前缀
+      const charCode = input.charCodeAt(i).toString(16) // 获取字符的Unicode编码并转换为16进制
+      unicodeString += `\\\\u${charCode.padStart(4, '0')}` // 补齐4位，然后加上\\u前缀
     } else {
-      unicodeString += input[i];
+      unicodeString += input[i]
     }
   }
-  return unicodeString;
+  return unicodeString
 }
 
 export function unicodeToString(unicodeString) {
   return unicodeString.replace(/\\u(\w{4})/g, function (match, group) {
-    return String.fromCharCode(parseInt(group, 16));
-  });
+    return String.fromCharCode(parseInt(group, 16))
+  })
+}
+
+interface SettingConfig {
+  workspacePath: string
+  lastProjectPath: string
+
+}
+
+const settingConfigPath = path.join(process.cwd(), 'setting.json')
+
+const defaultConfiguration = {
+  workspacePath: 'D:\\ai-workspace',
+  lastProjectPath: ''
+}
+
+export function getSettingConfig(): SettingConfig {
+  if (!fs.existsSync(settingConfigPath)) {
+    return defaultConfiguration
+  }
+  const fileStr = fs.readFileSync(settingConfigPath, { encoding: 'utf8' })
+  try {
+    return JSON.parse(fileStr)
+  } catch (error) {
+    return defaultConfiguration
+  }
+}
+
+export function updateSettingConfig(value: Partial<SettingConfig>) {
+  const originalValue = getSettingConfig()
+
+  const fileStr = JSON.stringify({ ...originalValue, ...value }, null, 2)
+
+  fs.writeFileSync(settingConfigPath, fileStr)
 }

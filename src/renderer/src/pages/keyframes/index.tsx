@@ -14,9 +14,10 @@ import {
   Select
 } from 'antd'
 import './index.scss'
-import { exec, generateHash, playSuccessMusic, sleep } from '@renderer/utils/tool'
+import { exec, generateHash, getSettingConfig, playSuccessMusic, sleep } from '@renderer/utils/tool'
 import {
   FrameResult,
+  generateFramesB,
   generateFramesP,
   generateKeyframes,
   getFrames,
@@ -59,6 +60,7 @@ interface FormValue {
 interface ProjectAllDirectory {
   keyframesOutputPath: string
   framesPOutputPath: string
+  framesBOutputPath: string
   videoPath: string
   taggerOutputPath: string
   image2ImageOutputPath: string
@@ -100,11 +102,11 @@ export function KeyframesPage() {
   const keyFramesDataSourceRef = useRef<KeyframeDto[]>([])
 
   // const videoPath = Form.useWatch('videoPath', form)
-
+  const settingConfig = getSettingConfig()
   const initialValues: Partial<FormValue> = {
     redrawFactor: 0.7,
     model: SDModelList[0],
-    projectDirectoryPath: 'D:\\ai-workspace\\坏脾气女友-6'
+    projectDirectoryPath: settingConfig.lastProjectPath
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
     // videoPath: 'D:\\ai-workspace\\好声音第一集\\01rm.mp4',
     // taggerOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes-tagger',
@@ -121,8 +123,10 @@ export function KeyframesPage() {
     const image2ImageOutputPath = path.join(projectDirectoryPath, 'keyframes-output')
     const image2ImageHighOutputPath = path.join(projectDirectoryPath, 'keyframes-upscale')
     const framesPOutputPath = path.join(projectDirectoryPath, 'frames-P')
+    const framesBOutputPath = path.join(projectDirectoryPath, 'frames-B')
     return {
       framesPOutputPath,
+      framesBOutputPath,
       videoPath,
       keyframesOutputPath,
       taggerOutputPath,
@@ -188,9 +192,11 @@ export function KeyframesPage() {
   async function handleGenerate() {
     setKeyframesLoading(true)
     try {
-      const { videoPath, keyframesOutputPath, framesPOutputPath } = await getProjectAllPaths()
+      const { videoPath, keyframesOutputPath, framesPOutputPath, framesBOutputPath } =
+        await getProjectAllPaths()
 
       // 生成P帧，弥补I帧
+      // await generateFramesB(videoPath, framesBOutputPath)
       // await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
@@ -497,7 +503,14 @@ export function KeyframesPage() {
           ></InputNumber>
         </Form.Item>
         <Form.Item name="model" label="模型" rules={[{ required: true, message: '模型必填' }]}>
-          <Select style={{ width: 200 }} options={SDModelList} labelInValue></Select>
+          <Select
+            style={{ width: 200 }}
+            options={SDModelList}
+            labelInValue
+            onChange={(data) => {
+              console.log('data :>> ', data)
+            }}
+          ></Select>
         </Form.Item>
       </Form>
       <Space direction="vertical" style={{ marginBottom: 24 }}>

@@ -5,3 +5,4 @@ out
 download/*
 # video-download/
 .cache
+setting.json

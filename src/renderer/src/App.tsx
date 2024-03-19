@@ -9,6 +9,7 @@ import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import { SearchPage } from './pages/search'
 import { KeyframesPage } from './pages/keyframes'
 import { VideoDownload } from './pages/video-download'
+import { Setting } from './pages/setting'
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -18,7 +19,8 @@ const menus: MenuItem[] = [
   {
     label: <Link to="/keyframes">一键创作</Link>,
     key: 'keyframes'
-  }
+  },
+  { label: <Link to="/setting">设置</Link>, key: 'setting' }
 ]
 
 function App(): JSX.Element {
@@ -40,6 +42,7 @@ function App(): JSX.Element {
               <Route path="/" Component={KeyframesPage} />
               <Route path="/download" Component={VideoDownload} />
               <Route path="/keyframes" Component={KeyframesPage} />
+              <Route path="/setting" Component={Setting} />
             </Routes>
           </Content>
         </Layout>

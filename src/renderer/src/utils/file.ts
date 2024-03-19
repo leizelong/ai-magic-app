@@ -224,6 +224,8 @@ export function checkAndCreateDirectory(directoryPath: string) {
     }
   } else {
     console.log(`目录已存在: ${directoryPath}`)
+    deleteDirectoryIfExists(directoryPath)
+    checkAndCreateDirectory(directoryPath)
   }
 }
 
