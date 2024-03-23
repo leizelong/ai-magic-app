@@ -38,7 +38,7 @@ import {
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
-import { path } from '@renderer/utils/module'
+import { fs, path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
 import { batchHighDefinition } from '@renderer/utils/high-definition'
 import { SDModelDto, SDModelList } from '@renderer/constants/sd-model'
@@ -104,7 +104,7 @@ export function KeyframesPage() {
   // const videoPath = Form.useWatch('videoPath', form)
   const settingConfig = getSettingConfig()
   const initialValues: Partial<FormValue> = {
-    redrawFactor: 0.7,
+    redrawFactor: 0.4,
     model: SDModelList[0],
     projectDirectoryPath: settingConfig.lastProjectPath
     // keyframesOutputPath: 'D:\\ai-workspace\\好声音第一集\\keyframes',
@@ -197,7 +197,7 @@ export function KeyframesPage() {
 
       // 生成P帧，弥补I帧
       // await generateFramesB(videoPath, framesBOutputPath)
-      // await generateFramesP(videoPath, framesPOutputPath)
+      await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
       await updateKeyframesData()
@@ -367,8 +367,14 @@ export function KeyframesPage() {
   }
 
   async function handleTotalSteps() {
-    await handleGenerate()
-    await handleTaggerPrompts()
+    const { videoPath, keyframesOutputPath, framesPOutputPath, framesBOutputPath, taggerOutputPath, image2ImageOutputPath } =
+      await getProjectAllPaths()
+    if (!fs.existsSync(keyframesOutputPath)) {
+      await handleGenerate()
+    }
+    if(!fs.existsSync(taggerOutputPath)) {
+      await handleTaggerPrompts()
+    }
     await handleBatchImage2Image()
     await handleBatchHighImage()
     await handleCombineVideo()

@@ -28,7 +28,7 @@ export function generateFramesB(targetPath: string, outputPath: string) {
   }
   checkAndCreateDirectory(outputPath)
   return exec(
-    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,B)" -fps_mode vfr -qscale:v 30 -f image2 ${outputPath}/%05d.png`
+    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,B)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
   )
 }
 
@@ -38,7 +38,7 @@ export function generateFramesP(targetPath: string, outputPath: string) {
   }
   checkAndCreateDirectory(outputPath)
   return exec(
-    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,P)" -fps_mode vfr -qscale:v 15 -f image2 ${outputPath}/%05d.png`
+    `ffmpeg -i ${targetPath} -vf "select=eq(pict_type\\,P)" -fps_mode vfr -qscale:v 2 -f image2 ${outputPath}/%05d.png`
   )
 }
 
