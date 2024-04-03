@@ -10,6 +10,8 @@ import { SearchPage } from './pages/search'
 import { KeyframesPage } from './pages/keyframes'
 import { VideoDownload } from './pages/video-download'
 import { Setting } from './pages/setting'
+import { ChatPage } from './pages/chat'
+import './index.scss'
 
 type MenuItem = Required<MenuProps>['items'][number]
 
@@ -19,6 +21,10 @@ const menus: MenuItem[] = [
   {
     label: <Link to="/keyframes">一键创作</Link>,
     key: 'keyframes'
+  },
+  {
+    label: <Link to="/chat">Chat</Link>,
+    key: 'chat'
   },
   { label: <Link to="/setting">设置</Link>, key: 'setting' }
 ]
@@ -37,11 +43,12 @@ function App(): JSX.Element {
             <div className="logo" />
             <Menu theme="dark" mode="inline" items={menus} />
           </Sider>
-          <Content style={{ padding: 16 }}>
+          <Content style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
             <Routes>
               <Route path="/" Component={KeyframesPage} />
               <Route path="/download" Component={VideoDownload} />
               <Route path="/keyframes" Component={KeyframesPage} />
+              <Route path="/chat" Component={ChatPage} />
               <Route path="/setting" Component={Setting} />
             </Routes>
           </Content>

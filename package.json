@@ -21,9 +21,11 @@
     "build:linux": "electron-vite build && electron-builder --linux --config"
   },
   "dependencies": {
+    "@chatui/core": "^2.4.2",
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
     "antd": "^5.9.0",
+    "axios": "^1.6.8",
     "crypto-js": "^4.1.1",
     "electron-updater": "^6.1.1",
     "fluent-ffmpeg": "^2.1.2",
