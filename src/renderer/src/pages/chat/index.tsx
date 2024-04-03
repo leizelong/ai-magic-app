@@ -3,14 +3,12 @@ import './index.scss'
 import Chat, { Bubble, useMessages } from '@chatui/core'
 // 引入样式
 import '@chatui/core/dist/index.css'
-// import axios from 'axios'
-const axios = require('axios')
-// axios.defaults.adapter = require('axios/lib/adapters/http');
-
-// const model = 'llama2:13b'
-const model = 'llama2-chinese'
+import { getSettingConfig } from '@renderer/utils/tool'
+import axios from 'axios'
 
 export function ChatPage() {
+  const { cozeToken } = getSettingConfig()
+
   const { messages, appendMsg, setTyping } = useMessages([])
 
   async function handleSend(type, val) {
@@ -23,18 +21,24 @@ export function ChatPage() {
 
       setTyping(true)
 
-      const res = await axios.post('http://localhost:11434/api/chat', {
-        model: model,
-        messages: [
-          {
-            role: 'user',
-            content: val
+      const res = await axios.post(
+        'https://api.coze.com/open_api/v2/chat',
+        {
+          stream: false,
+          bot_id: '7353673363065143304',
+          user: 'leizl',
+          query: val
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${cozeToken}`,
+            Accept: '*/*',
+            'Content-Type': 'application/json'
           }
-        ],
-        stream: false
-      })
+        }
+      )
 
-      const msg = res.data.message.content
+      const msg = res.data.messages?.[0]?.content
 
       appendMsg({
         type: 'text',

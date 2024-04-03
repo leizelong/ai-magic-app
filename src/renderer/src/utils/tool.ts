@@ -145,14 +145,14 @@ export function unicodeToString(unicodeString) {
 interface SettingConfig {
   workspacePath: string
   lastProjectPath: string
-
+  cozeToken?: string
 }
 
 const settingConfigPath = path.join(process.cwd(), 'setting.json')
 
 const defaultConfiguration = {
   workspacePath: 'D:\\ai-workspace',
-  lastProjectPath: ''
+  lastProjectPath: '',
 }
 
 export function getSettingConfig(): SettingConfig {
