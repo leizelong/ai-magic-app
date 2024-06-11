@@ -30,6 +30,7 @@ interface CombineJianYingVideoDto {
 
 export function combineJianYingVideo(options: CombineJianYingVideoDto) {
   const { keyFrameList, videoInfo } = options
+  console.log('combineJianYingVideo options :>> ', options)
 
   const draftProjectName = path.basename(path.dirname(videoInfo.filePath))
   const videoNameWithoutExtension = videoInfo.fileName.replace(/(.*)\..*$/, '$1')

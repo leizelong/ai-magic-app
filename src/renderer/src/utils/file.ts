@@ -259,3 +259,41 @@ export function isDirectoryEmpty(directoryPath: string) {
     return false
   }
 }
+
+export function renameImages(directoryPath: string, outputPath: string) {
+  checkAndCreateDirectory(outputPath)
+
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        reject(new Error('读取文件夹失败'))
+        return
+      }
+
+      // 过滤出 png 图片
+      const pngFiles = files.filter((file) => path.extname(file).toLowerCase() === '.jpg')
+      if (!pngFiles?.length) {
+        reject(new Error('no pngFiles'))
+        return
+      }
+
+      pngFiles.forEach((file, index) => {
+        // 生成新的文件名，格式为 00001.png
+        const newFileName = String(index + 1).padStart(5, '0') + '.png'
+        const oldPath = path.join(directoryPath, file)
+        const newPath = path.join(outputPath, newFileName)
+
+        /// 使用 fs.rename 方法进行重命名
+        fs.rename(oldPath, newPath, (err) => {
+          if (err) {
+            console.error('重命名失败', err)
+            return
+          }
+
+          console.log(`成功将 ${file} 重命名为 ${newFileName}`)
+        })
+      })
+      resolve(true)
+    })
+  })
+}

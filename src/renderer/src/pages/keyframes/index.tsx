@@ -34,6 +34,7 @@ import {
   readFileToBase64,
   readImage2ImageDirectory,
   readTxtFilesInDirectory,
+  renameImages,
   writeToFile
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
@@ -65,6 +66,7 @@ interface ProjectAllDirectory {
   taggerOutputPath: string
   image2ImageOutputPath: string
   image2ImageHighOutputPath: string
+  materialDirPath: string
 }
 
 interface KeyframeDto {
@@ -124,6 +126,8 @@ export function KeyframesPage() {
     const image2ImageHighOutputPath = path.join(projectDirectoryPath, 'keyframes-upscale')
     const framesPOutputPath = path.join(projectDirectoryPath, 'frames-P')
     const framesBOutputPath = path.join(projectDirectoryPath, 'frames-B')
+    const materialDirPath = path.join(projectDirectoryPath, 'material')
+
     return {
       framesPOutputPath,
       framesBOutputPath,
@@ -131,7 +135,8 @@ export function KeyframesPage() {
       keyframesOutputPath,
       taggerOutputPath,
       image2ImageOutputPath,
-      image2ImageHighOutputPath
+      image2ImageHighOutputPath,
+      materialDirPath
     }
   }
 
@@ -189,6 +194,14 @@ export function KeyframesPage() {
     updateKeyframesData()
   }, [])
 
+  async function handleRenameImages() {
+    const { keyframesOutputPath, materialDirPath } = await getProjectAllPaths()
+
+    await renameImages(materialDirPath, keyframesOutputPath)
+    await sleep(2000)
+    await updateKeyframesData()
+  }
+
   async function handleGenerate() {
     setKeyframesLoading(true)
     try {
@@ -197,7 +210,7 @@ export function KeyframesPage() {
 
       // 生成P帧，弥补I帧
       // await generateFramesB(videoPath, framesBOutputPath)
-      await generateFramesP(videoPath, framesPOutputPath)
+      // await generateFramesP(videoPath, framesPOutputPath)
       await generateKeyframes(videoPath, keyframesOutputPath)
 
       await updateKeyframesData()
@@ -256,6 +269,23 @@ export function KeyframesPage() {
       const { image2ImageHighOutputPath, image2ImageOutputPath } = getProjectAllPaths()
       checkAndCreateDirectory(image2ImageHighOutputPath)
       await batchHighDefinition(image2ImageOutputPath, image2ImageHighOutputPath)
+      updateKeyframesData()
+      message.success('批量高清成功')
+      playSuccessMusic()
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setBatchHighDefinitionLoading(false)
+    }
+  }
+
+  async function handleBatchKeyframes() {
+    try {
+      setBatchHighDefinitionLoading(true)
+      const { image2ImageHighOutputPath, image2ImageOutputPath, keyframesOutputPath } =
+        getProjectAllPaths()
+      checkAndCreateDirectory(image2ImageHighOutputPath)
+      await batchHighDefinition(keyframesOutputPath, image2ImageHighOutputPath)
       updateKeyframesData()
       message.success('批量高清成功')
       playSuccessMusic()
@@ -367,12 +397,18 @@ export function KeyframesPage() {
   }
 
   async function handleTotalSteps() {
-    const { videoPath, keyframesOutputPath, framesPOutputPath, framesBOutputPath, taggerOutputPath, image2ImageOutputPath } =
-      await getProjectAllPaths()
+    const {
+      videoPath,
+      keyframesOutputPath,
+      framesPOutputPath,
+      framesBOutputPath,
+      taggerOutputPath,
+      image2ImageOutputPath
+    } = await getProjectAllPaths()
     if (!fs.existsSync(keyframesOutputPath)) {
       await handleGenerate()
     }
-    if(!fs.existsSync(taggerOutputPath)) {
+    if (!fs.existsSync(taggerOutputPath)) {
       await handleTaggerPrompts()
     }
     await handleBatchImage2Image()
@@ -521,6 +557,9 @@ export function KeyframesPage() {
       </Form>
       <Space direction="vertical" style={{ marginBottom: 24 }}>
         <Space direction="horizontal">
+          <Button type="primary" onClick={handleRenameImages} loading={keyFramesLoading}>
+            重命名
+          </Button>
           <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
             生成关键帧
           </Button>
@@ -530,7 +569,6 @@ export function KeyframesPage() {
           <Button type="primary" onClick={handleBatchImage2Image} loading={img2imgLoading}>
             一键图生图
           </Button>
-
           <Button
             type="primary"
             onClick={handleBatchHighImage}
@@ -538,7 +576,13 @@ export function KeyframesPage() {
           >
             批量高清
           </Button>
-
+          <Button
+            type="primary"
+            onClick={handleBatchKeyframes}
+            loading={batchHighDefinitionLoading}
+          >
+            批量高清关键帧
+          </Button>
           <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
             剪映合成
           </Button>

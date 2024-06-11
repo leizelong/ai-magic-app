@@ -97,31 +97,35 @@ export async function getKeyFramesInfo(
   }
 
   const keyFrameList: DraftKeyFrameDto[] = []
-  let preFrameTimeStamp = 0
-  for (let index = 0; index < keyFrames.length; index++) {
-    const keyFrame = keyFrames[index]
-    const { fileName, filePath } = filesInfo[index] || {}
-    const { pkt_dts_time } = keyFrame
-    const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
 
-    const duration = curFrameTimeStamp - preFrameTimeStamp
-    preFrameTimeStamp = curFrameTimeStamp
+  const oneDuration = videoDuration / filesInfo?.length
+
+  let preFrameTimeStamp = 0
+  for (let index = 0; index < filesInfo.length; index++) {
+    const { fileName, filePath } = filesInfo[index] || {}
+
+    // const keyFrame = filesInfo[index]
+    // // const { pkt_dts_time } = keyFrame
+    // const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
+
+    // const duration = curFrameTimeStamp - preFrameTimeStamp
+    // preFrameTimeStamp = curFrameTimeStamp
 
     keyFrameList.push({
       // ...keyFrame,
       fileName,
       filePath,
-      start: curFrameTimeStamp,
-      duration: 0
+      start: index * oneDuration,
+      duration: oneDuration,
     })
 
-    if (index > 0) {
-      keyFrameList[index - 1].duration = duration
-    }
+    // if (index > 0) {
+    //   keyFrameList[index - 1].duration = duration
+    // }
 
-    if (index === keyFrames.length - 1) {
-      keyFrameList[index].duration = videoDuration - curFrameTimeStamp
-    }
+    // if (index === keyFrames.length - 1) {
+    //   keyFrameList[index].duration = videoDuration - curFrameTimeStamp
+    // }
   }
 
   return { keyFrameList, videoInfo }
