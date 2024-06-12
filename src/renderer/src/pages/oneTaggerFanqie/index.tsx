@@ -37,7 +37,8 @@ import {
   copyImages,
   unzipMaterialImages,
   writeToFile,
-  findTargetFile
+  findTargetFile,
+  renameFileIfHasWhiteSpace
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
@@ -45,6 +46,7 @@ import { fs, path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
 import { batchHighDefinition } from '@renderer/utils/high-definition'
 import { SDModelDto, SDModelList } from '@renderer/constants/sd-model'
+import { removeWatermark } from '@renderer/utils/ffmpeg'
 
 const { Dragger } = Upload
 
@@ -69,7 +71,8 @@ interface ProjectAllDirectory {
   image2ImageOutputPath: string
   image2ImageHighOutputPath: string
   materialDirPath: string
-  projectDirectoryPath?: string
+  projectDirectoryPath: string
+  removeWaterVideoPath: string
 }
 
 interface KeyframeDto {
@@ -123,6 +126,7 @@ export function OneTaggerFanqiePage() {
     // const { projectDirectoryPath } = await form.validateFields()
     const { projectDirectoryPath } = form.getFieldsValue()
     const videoPath = path.join(projectDirectoryPath, 'origin.mp4')
+    const removeWaterVideoPath = path.join(projectDirectoryPath, 'remove-water.mp4')
     const keyframesOutputPath = path.join(projectDirectoryPath, 'keyframes')
     const taggerOutputPath = path.join(projectDirectoryPath, 'keyframes-tagger')
     const image2ImageOutputPath = path.join(projectDirectoryPath, 'keyframes-output')
@@ -135,6 +139,7 @@ export function OneTaggerFanqiePage() {
       framesPOutputPath,
       framesBOutputPath,
       videoPath,
+      removeWaterVideoPath,
       keyframesOutputPath,
       taggerOutputPath,
       image2ImageOutputPath,
@@ -204,14 +209,11 @@ export function OneTaggerFanqiePage() {
   }
 
   async function handleRemoveWater() {
-    const {
-      keyframesOutputPath,
-      materialDirPath,
-      projectDirectoryPath = ''
-    } = await getProjectAllPaths()
-    const videoPath = await findTargetFile(materialDirPath, '.mp4')
-    console.log('videoPath :>> ', videoPath)
-    fs.copyFileSync(videoPath, path.join(projectDirectoryPath, 'test.mp4'))
+    const { keyframesOutputPath, materialDirPath, projectDirectoryPath, removeWaterVideoPath } =
+      await getProjectAllPaths()
+    const findVideoPath = await findTargetFile(materialDirPath, '.mp4')
+    const targetVideoPath = await renameFileIfHasWhiteSpace(findVideoPath)
+    await removeWatermark(targetVideoPath, removeWaterVideoPath)
   }
 
   async function handleUseSeed(item: KeyframeDto, index: number) {
@@ -270,10 +272,14 @@ export function OneTaggerFanqiePage() {
   }
 
   async function handleCombineVideo() {
-    const { videoPath, keyframesOutputPath, materialDirPath } = await getProjectAllPaths()
+    const { videoPath, keyframesOutputPath, materialDirPath, removeWaterVideoPath } =
+      await getProjectAllPaths()
     try {
       setCombineLoading(true)
-      const { keyFrameList, videoInfo } = await getKeyFramesInfo(videoPath, keyframesOutputPath)
+      const { keyFrameList, videoInfo } = await getKeyFramesInfo(
+        removeWaterVideoPath,
+        keyframesOutputPath
+      )
       combineJianYingVideo({ keyFrameList, videoInfo })
       message.success('剪映草稿视频合成成功')
       playSuccessMusic()
@@ -312,6 +318,7 @@ export function OneTaggerFanqiePage() {
 
   async function handleTotalSteps() {
     await handleUnzipImages()
+    await handleRemoveWater()
     await handleCombineVideo()
   }
 

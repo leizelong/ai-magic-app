@@ -1,5 +1,5 @@
-// import * as ffmpeg from 'fluent-ffmpeg'
-// import ffmpeg from 'fluent-ffmpeg'
+import { exec } from './tool'
+
 const ffmpeg = require('fluent-ffmpeg')
 
 export function getVideoDuration(videoPath) {
@@ -32,4 +32,30 @@ export function extractAudioFromVideoAsync(inputVideoPath, outputAudioPath) {
       })
       .run()
   })
+}
+
+export async function getVideoInfo(videoPath: string) {
+  // `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 input.mp4`
+  const res = await exec<string>(
+    `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 ${videoPath}`,
+    {
+      maxBuffer: 1024 * 1024 * 1024
+    }
+  )
+  // 输出宽度和高度
+  const [width, height] = res.split(',')?.map((item) => Number(item))
+  return { width, height }
+}
+
+export async function removeWatermark(inputVideoPath: string, outputVideoPath: string) {
+  // ffmpeg -i input.mp4 -vf "delogo=x=10:y=10:w=100:h=20" output.mp4
+  const { width, height } = await getVideoInfo(inputVideoPath)
+  const titleHeight = 200
+  const bottom = 50
+  await exec<string>(
+    `ffmpeg -i ${inputVideoPath} -vf "delogo=x=0:y=${
+      height - titleHeight - bottom
+    }:w=${width}:h=${titleHeight}" ${outputVideoPath}`
+  )
+  console.log('去水印成功 :>> ')
 }

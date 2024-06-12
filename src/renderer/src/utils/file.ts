@@ -378,3 +378,27 @@ export async function unzipMaterialImages(materialDirPath: string, outputPath: s
   await unzipFile(imageZip, outputPath)
   await renameImages(outputPath)
 }
+
+// 检查文件名是否存在空白，重命名去除空白
+export async function renameFileIfHasWhiteSpace(filePath) {
+  const fileName = path.basename(filePath);
+  const directory = path.dirname(filePath);
+
+  if (/\s/g.test(fileName)) {
+    const newFileName = fileName.replace(/\s/g, '');
+    const newPath = path.join(directory, newFileName);
+
+    try {
+      await fs.renameSync(filePath, newPath);
+      console.log(`文件重命名成功，新的文件名是：${newFileName}`);
+      return newPath;
+    } catch (err) {
+      console.error('重命名文件时发生错误:', err);
+      throw err
+    }
+  } else {
+    console.log('文件名中没有空格，无需重命名');
+  }
+
+  return filePath;
+}
