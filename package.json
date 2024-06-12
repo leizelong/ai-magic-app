@@ -35,7 +35,8 @@
     "puppeteer": "^22.5.0",
     "react-router": "^6.16.0",
     "react-router-dom": "^6.16.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "unzipper": "^0.12.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^1.0.1",

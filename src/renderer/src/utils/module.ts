@@ -1,3 +1,3 @@
-const { fs, child_process, path } = window.api
+const { fs, child_process, path, unzipper } = window.api
 
-export { fs, child_process, path }
+export { fs, child_process, path, unzipper }

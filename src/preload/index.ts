@@ -4,8 +4,10 @@ import child_process from 'child_process'
 import path from 'path'
 import fs from 'fs'
 
+const unzipper = require('unzipper');
+
 // Custom APIs for renderer
-export const api = { child_process, path, fs }
+export const api = { child_process, path, fs, unzipper }
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

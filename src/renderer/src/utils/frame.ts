@@ -16,6 +16,7 @@ export interface FrameDto {
   media_type: string
   /** Frame包的pts的时间显示 */
   pkt_dts_time: string
+  pts_time: string
 }
 // ffmpeg -i D:\ai-workspace\带某子逗阵\origin.mp4 -vf "select=eq(pict_type,B)" -fps_mode vfr -qscale:v 2 -f image2 D:\ai-workspace\带某子逗阵\keyframes-B/%05d.png
 // ffmpeg -i 666051400.mp4 -filter:v "select='gt(scene,0.1)',showinfo"
@@ -96,39 +97,63 @@ export async function getKeyFramesInfo(
     fileName: path.basename(videoPath)
   }
 
-  const keyFrameList: DraftKeyFrameDto[] = []
+  console.log('video getKeyFramesInfo :>> ', keyFrames, videoInfo)
 
-  const oneDuration = videoDuration / filesInfo?.length
+  const keyFrameList: DraftKeyFrameDto[] = []
+  const startTimeList = keyFrames?.map((keyframe) =>
+    Number(Number(keyframe?.pkt_dts_time) * 1000 * 1000)
+  )
+  const endTimeList = [...startTimeList]
+  endTimeList.splice(0, 1)
+  endTimeList.push(videoDuration)
+
+  console.log('startTimeList :>> ', startTimeList)
+  console.log('endTimeList :>> ', endTimeList)
+  const _keyframeList = keyFrames?.map((keyframe, index) => {
+    const { fileName, filePath } = filesInfo[index] || {}
+    const start = startTimeList[index]
+    const end = endTimeList[index]
+    return {
+      ...keyframe,
+      fileName,
+      filePath,
+      start,
+      end,
+      duration: end - start
+    }
+  })
+  console.log('_keyframeList :>> ', _keyframeList)
 
   let preFrameTimeStamp = 0
-  for (let index = 0; index < filesInfo.length; index++) {
+  // let nextStart
+  for (let index = 0; index < keyFrames.length; index++) {
+    const keyFrame = keyFrames[index]
     const { fileName, filePath } = filesInfo[index] || {}
+    const { pkt_dts_time, pts_time: end_time } = keyFrame
+    const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
 
-    // const keyFrame = filesInfo[index]
-    // // const { pkt_dts_time } = keyFrame
-    // const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
-
-    // const duration = curFrameTimeStamp - preFrameTimeStamp
-    // preFrameTimeStamp = curFrameTimeStamp
+    const duration = curFrameTimeStamp - preFrameTimeStamp
+    preFrameTimeStamp = curFrameTimeStamp
 
     keyFrameList.push({
       // ...keyFrame,
       fileName,
       filePath,
-      start: index * oneDuration,
-      duration: oneDuration,
+      start: curFrameTimeStamp,
+      end: Number(Number(pkt_dts_time) * 1000 * 1000),
+      duration: 0
     })
 
-    // if (index > 0) {
-    //   keyFrameList[index - 1].duration = duration
-    // }
+    if (index > 0) {
+      keyFrameList[index - 1].duration = duration
+    }
 
-    // if (index === keyFrames.length - 1) {
-    //   keyFrameList[index].duration = videoDuration - curFrameTimeStamp
-    // }
+    if (index === keyFrames.length - 1) {
+      keyFrameList[index].duration = videoDuration - curFrameTimeStamp
+    }
   }
-
-  return { keyFrameList, videoInfo }
+  console.log('format :>> ', keyFrameList)
+  return { keyFrameList: _keyframeList, videoInfo }
 }
 
 export async function getKeyframesPaths(dirPath: string) {

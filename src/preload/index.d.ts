@@ -4,6 +4,8 @@ import * as child_process from 'child_process'
 
 import path from 'path'
 import fs from 'fs'
+const unzipper = require('unzipper');
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -11,6 +13,7 @@ declare global {
       child_process: typeof child_process
       path: typeof path,
       fs: typeof fs,
+      unzipper: typeof unzipper
     }
   }
 }

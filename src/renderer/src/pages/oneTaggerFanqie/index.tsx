@@ -35,7 +35,9 @@ import {
   readImage2ImageDirectory,
   readTxtFilesInDirectory,
   copyImages,
-  writeToFile
+  unzipMaterialImages,
+  writeToFile,
+  findTargetFile
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
 import { combineJianYingVideo } from '@renderer/utils/jianYing'
@@ -67,6 +69,7 @@ interface ProjectAllDirectory {
   image2ImageOutputPath: string
   image2ImageHighOutputPath: string
   materialDirPath: string
+  projectDirectoryPath?: string
 }
 
 interface KeyframeDto {
@@ -81,7 +84,7 @@ interface KeyframeDto {
   seed?: string
 }
 
-export function KeyframesPage() {
+export function OneTaggerFanqiePage() {
   const [form] = Form.useForm<FormValue>()
 
   const [keyFramesLoading, setKeyframesLoading] = useState(false)
@@ -126,7 +129,7 @@ export function KeyframesPage() {
     const image2ImageHighOutputPath = path.join(projectDirectoryPath, 'keyframes-upscale')
     const framesPOutputPath = path.join(projectDirectoryPath, 'frames-P')
     const framesBOutputPath = path.join(projectDirectoryPath, 'frames-B')
-    const materialDirPath = path.join(projectDirectoryPath, 'material')
+    const materialDirPath = path.join(projectDirectoryPath, '素材')
 
     return {
       framesPOutputPath,
@@ -136,7 +139,8 @@ export function KeyframesPage() {
       taggerOutputPath,
       image2ImageOutputPath,
       image2ImageHighOutputPath,
-      materialDirPath
+      materialDirPath,
+      projectDirectoryPath
     }
   }
 
@@ -194,106 +198,20 @@ export function KeyframesPage() {
     updateKeyframesData()
   }, [])
 
-  async function handleCopyImages() {
+  async function handleUnzipImages() {
     const { keyframesOutputPath, materialDirPath } = await getProjectAllPaths()
-
-    await copyImages(materialDirPath, keyframesOutputPath)
-    await sleep(2000)
-    await updateKeyframesData()
+    await unzipMaterialImages(materialDirPath, keyframesOutputPath)
   }
 
-  async function handleGenerate() {
-    setKeyframesLoading(true)
-    try {
-      const { videoPath, keyframesOutputPath, framesPOutputPath, framesBOutputPath } =
-        await getProjectAllPaths()
-
-      // 生成P帧，弥补I帧
-      // await generateFramesB(videoPath, framesBOutputPath)
-      // await generateFramesP(videoPath, framesPOutputPath)
-      await generateKeyframes(videoPath, keyframesOutputPath)
-
-      await updateKeyframesData()
-
-      message.success('生成关键帧成功')
-      playSuccessMusic()
-    } catch (error: any) {
-      message.error(error.message)
-      throw error
-    } finally {
-      setKeyframesLoading(false)
-    }
-  }
-
-  async function handleTaggerPrompts() {
-    const { keyframesOutputPath, taggerOutputPath } = await getProjectAllPaths()
-
-    try {
-      setTaggerLoading(true)
-      await createTaggerTask({ inputPath: keyframesOutputPath, outputPath: taggerOutputPath })
-      // 部分更新
-      await updateKeyframesData()
-      message.success('反推关键词成功')
-      playSuccessMusic()
-    } catch (error: any) {
-      message.error(error.message)
-      throw error
-    } finally {
-      setTaggerLoading(false)
-    }
-  }
-
-  async function handleBatchImage2Image() {
-    try {
-      setImg2ImgLoading(true)
-      if (!keyFramesDataSourceRef.current.length) {
-        throw new Error('keyframesDataSource 是空的')
-      }
-      for (let index = 0; index < keyFramesDataSourceRef.current.length; index++) {
-        const keyframe = keyFramesDataSourceRef.current[index]
-        await handleImg2Img(keyframe, index, true)
-      }
-      message.success('批量图生图成功')
-      playSuccessMusic()
-    } catch (error: any) {
-      message.error(error.message)
-      throw error
-    } finally {
-      setImg2ImgLoading(false)
-    }
-  }
-
-  async function handleBatchHighImage() {
-    try {
-      setBatchHighDefinitionLoading(true)
-      const { image2ImageHighOutputPath, image2ImageOutputPath } = getProjectAllPaths()
-      checkAndCreateDirectory(image2ImageHighOutputPath)
-      await batchHighDefinition(image2ImageOutputPath, image2ImageHighOutputPath)
-      updateKeyframesData()
-      message.success('批量高清成功')
-      playSuccessMusic()
-    } catch (error: any) {
-      message.error(error.message)
-    } finally {
-      setBatchHighDefinitionLoading(false)
-    }
-  }
-
-  async function handleBatchKeyframes() {
-    try {
-      setBatchHighDefinitionLoading(true)
-      const { image2ImageHighOutputPath, image2ImageOutputPath, keyframesOutputPath } =
-        getProjectAllPaths()
-      checkAndCreateDirectory(image2ImageHighOutputPath)
-      await batchHighDefinition(keyframesOutputPath, image2ImageHighOutputPath)
-      updateKeyframesData()
-      message.success('批量高清成功')
-      playSuccessMusic()
-    } catch (error: any) {
-      message.error(error.message)
-    } finally {
-      setBatchHighDefinitionLoading(false)
-    }
+  async function handleRemoveWater() {
+    const {
+      keyframesOutputPath,
+      materialDirPath,
+      projectDirectoryPath = ''
+    } = await getProjectAllPaths()
+    const videoPath = await findTargetFile(materialDirPath, '.mp4')
+    console.log('videoPath :>> ', videoPath)
+    fs.copyFileSync(videoPath, path.join(projectDirectoryPath, 'test.mp4'))
   }
 
   async function handleUseSeed(item: KeyframeDto, index: number) {
@@ -352,14 +270,10 @@ export function KeyframesPage() {
   }
 
   async function handleCombineVideo() {
-    const { videoPath, image2ImageHighOutputPath } = await getProjectAllPaths()
+    const { videoPath, keyframesOutputPath, materialDirPath } = await getProjectAllPaths()
     try {
       setCombineLoading(true)
-      const { keyFrameList, videoInfo } = await getKeyFramesInfo(
-        videoPath,
-        image2ImageHighOutputPath
-      )
-      // todo 检测草稿是否存在，提示是否覆盖
+      const { keyFrameList, videoInfo } = await getKeyFramesInfo(videoPath, keyframesOutputPath)
       combineJianYingVideo({ keyFrameList, videoInfo })
       message.success('剪映草稿视频合成成功')
       playSuccessMusic()
@@ -397,22 +311,7 @@ export function KeyframesPage() {
   }
 
   async function handleTotalSteps() {
-    const {
-      videoPath,
-      keyframesOutputPath,
-      framesPOutputPath,
-      framesBOutputPath,
-      taggerOutputPath,
-      image2ImageOutputPath
-    } = await getProjectAllPaths()
-    if (!fs.existsSync(keyframesOutputPath)) {
-      await handleGenerate()
-    }
-    if (!fs.existsSync(taggerOutputPath)) {
-      await handleTaggerPrompts()
-    }
-    await handleBatchImage2Image()
-    await handleBatchHighImage()
+    await handleUnzipImages()
     await handleCombineVideo()
   }
 
@@ -485,47 +384,6 @@ export function KeyframesPage() {
             enterButton
           />
         </Form.Item>
-        {/* <Form.Item name="videoPath" rules={[{ required: true, message: '请上传视频' }]}>
-          <Dragger {...draggerProps}>
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined />
-            </p>
-            <p className="ant-upload-text">点击，或者拖动文件上传视频</p>
-            <p className="ant-upload-hint">{videoPath}</p>
-          </Dragger>
-        </Form.Item> */}
-
-        {/*
-
-        <Form.Item
-          name="keyframesOutputPath"
-          label="关键帧生成目录"
-          rules={[{ required: true, message: '关键帧生成目录必填' }]}
-        >
-          <Input></Input>
-        </Form.Item>
-
-        <Form.Item
-          name="taggerOutputPath"
-          label="反推提示词生成目录"
-          rules={[{ required: true, message: '反推提示词生成目录必填' }]}
-        >
-          <Input></Input>
-        </Form.Item>
-        <Form.Item
-          name="image2ImageOutputPath"
-          label="批量图生图生成目录"
-          rules={[{ required: true, message: '批量图生图生成目录必填' }]}
-        >
-          <Input></Input>
-        </Form.Item>
-        <Form.Item
-          name="image2ImageHighOutputPath"
-          label="高清修复生成目录"
-          rules={[{ required: true, message: '高清修复生成目录必填' }]}
-        >
-          <Input></Input>
-        </Form.Item> */}
 
         <Form.Item name="randomSeed" label="采样种子">
           <InputNumber disabled style={{ width: 150 }}></InputNumber>
@@ -557,37 +415,16 @@ export function KeyframesPage() {
       </Form>
       <Space direction="vertical" style={{ marginBottom: 24 }}>
         <Space direction="horizontal">
-          <Button type="primary" onClick={handleCopyImages} loading={keyFramesLoading}>
-            重命名
+          <Button type="primary" onClick={handleUnzipImages} loading={keyFramesLoading}>
+            解压图片
           </Button>
-          <Button type="primary" onClick={handleGenerate} loading={keyFramesLoading}>
-            生成关键帧
-          </Button>
-          <Button type="primary" onClick={handleTaggerPrompts} loading={taggerLoading}>
-            一键反推提示词
-          </Button>
-          <Button type="primary" onClick={handleBatchImage2Image} loading={img2imgLoading}>
-            一键图生图
-          </Button>
-          <Button
-            type="primary"
-            onClick={handleBatchHighImage}
-            loading={batchHighDefinitionLoading}
-          >
-            批量高清
-          </Button>
-          <Button
-            type="primary"
-            onClick={handleBatchKeyframes}
-            loading={batchHighDefinitionLoading}
-          >
-            批量高清关键帧
+          <Button type="primary" onClick={handleRemoveWater} loading={keyFramesLoading}>
+            去字幕
           </Button>
           <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
             剪映合成
           </Button>
         </Space>
-
         <Space direction="horizontal">
           <Button type="primary" onClick={handleTotalSteps}>
             一键生成

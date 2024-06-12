@@ -1,4 +1,4 @@
-import { fs, path } from './module'
+import { fs, path, unzipper } from './module'
 
 const fse = require('fs-extra')
 
@@ -260,7 +260,7 @@ export function isDirectoryEmpty(directoryPath: string) {
   }
 }
 
-export function renameImages(directoryPath: string, outputPath: string) {
+export function copyImages(directoryPath: string, outputPath: string) {
   checkAndCreateDirectory(outputPath)
 
   return new Promise((resolve, reject) => {
@@ -270,18 +270,62 @@ export function renameImages(directoryPath: string, outputPath: string) {
         return
       }
 
+      // 男主抢我未婚妻，我直接偷家 - 2024-06-11-0.jpg
       // 过滤出 png 图片
-      const pngFiles = files.filter((file) => path.extname(file).toLowerCase() === '.jpg')
-      if (!pngFiles?.length) {
+      const getIdx = (str: string) => Number(str.replace(/.*-(\d*)\.jpg/, '$1'))
+      const imageFiles = files
+        .filter((file) => path.extname(file).toLowerCase() === '.jpg')
+        .sort((a, b) => getIdx(a) - getIdx(b))
+      if (!imageFiles?.length) {
         reject(new Error('no pngFiles'))
         return
       }
 
-      pngFiles.forEach((file, index) => {
+      imageFiles.forEach((file, index) => {
         // 生成新的文件名，格式为 00001.png
         const newFileName = String(index + 1).padStart(5, '0') + '.png'
         const oldPath = path.join(directoryPath, file)
         const newPath = path.join(outputPath, newFileName)
+
+        /// 使用 fs.rename 方法进行重命名
+        fs.copyFile(oldPath, newPath, (err) => {
+          if (err) {
+            console.error('重命名失败', err)
+            return
+          }
+
+          console.log(`成功将 ${file} 重命名为 ${newFileName}`)
+        })
+      })
+      resolve(true)
+    })
+  })
+}
+
+export function renameImages(directoryPath: string) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        reject(new Error('读取文件夹失败'))
+        return
+      }
+
+      // 男主抢我未婚妻，我直接偷家 - 2024-06-11-0.jpg
+      // 过滤出 png 图片
+      const getIdx = (str: string) => Number(str.replace(/.*-(\d*)\.jpg/, '$1'))
+      const imageFiles = files
+        .filter((file) => path.extname(file).toLowerCase() === '.jpg')
+        .sort((a, b) => getIdx(a) - getIdx(b))
+      if (!imageFiles?.length) {
+        reject(new Error('no pngFiles'))
+        return
+      }
+
+      imageFiles.forEach((file, index) => {
+        // 生成新的文件名，格式为 00001.png
+        const newFileName = String(index + 1).padStart(5, '0') + '.png'
+        const oldPath = path.join(directoryPath, file)
+        const newPath = path.join(directoryPath, newFileName)
 
         /// 使用 fs.rename 方法进行重命名
         fs.rename(oldPath, newPath, (err) => {
@@ -296,4 +340,41 @@ export function renameImages(directoryPath: string, outputPath: string) {
       resolve(true)
     })
   })
+}
+
+export async function unzipFile(zipFilePath: string, outputDir: string) {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(zipFilePath)
+      .pipe(unzipper.Extract({ path: outputDir }))
+      .on('finish', resolve)
+      .on('error', reject)
+  })
+}
+
+export async function findTargetFile(directoryPath: string, fileExtension: string) {
+  return new Promise<string>((resolve, reject) => {
+    // const fileExtension = '.txt' // 更改为需要搜索的文件后缀
+
+    fs.readdir(directoryPath, (err, files) => {
+      if (err) {
+        // console.log(`Error getting directory information: ${err}`)
+        reject(new Error(`Error getting directory information: ${err}`))
+      } else {
+        files.forEach((file) => {
+          if (path.extname(file) === fileExtension) {
+            resolve(path.join(directoryPath, file))
+            // resolve({ fileName: file, filePath: path.join(directoryPath, file) })
+          }
+        })
+      }
+      reject('没有匹配的文件')
+    })
+  })
+}
+
+export async function unzipMaterialImages(materialDirPath: string, outputPath: string) {
+  const imageZip = await findTargetFile(materialDirPath, '.zip')
+  checkAndCreateDirectory(outputPath)
+  await unzipFile(imageZip, outputPath)
+  await renameImages(outputPath)
 }
