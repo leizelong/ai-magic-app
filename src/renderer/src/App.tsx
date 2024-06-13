@@ -8,7 +8,6 @@ import { useState } from 'react'
 import { HashRouter, Link, Route, Routes } from 'react-router-dom'
 import { SearchPage } from './pages/search'
 import { KeyframesPage } from './pages/keyframes'
-import { VideoDownload } from './pages/video-download'
 import { Setting } from './pages/setting'
 import { ChatPage } from './pages/chat'
 import './index.scss'
@@ -17,7 +16,7 @@ import { OneTaggerFanqiePage } from './pages/oneTaggerFanqie'
 type MenuItem = Required<MenuProps>['items'][number]
 
 const menus: MenuItem[] = [
-  { label: <Link to="/download">视频下载</Link>, key: 'download' },
+  // { label: <Link to="/download">视频下载</Link>, key: 'download' },
   { label: <Link to="/remove-water">去水印</Link>, key: 'remove-water' },
   {
     label: <Link to="/one-tagger-fanqie">番茄一键推文</Link>,
@@ -51,7 +50,6 @@ function App(): JSX.Element {
           <Content style={{ padding: 16, display: 'flex', flexDirection: 'column' }}>
             <Routes>
               <Route path="/" Component={OneTaggerFanqiePage} />
-              <Route path="/download" Component={VideoDownload} />
               <Route path="/keyframes" Component={KeyframesPage} />
               <Route path="/one-tagger-fanqie" Component={OneTaggerFanqiePage} />
 

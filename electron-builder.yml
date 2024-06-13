@@ -11,7 +11,7 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
-  - .cache/**
+  # - .cache/**
   - templates/**
 win:
   executableName: ai-magic-app
