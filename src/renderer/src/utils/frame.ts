@@ -70,6 +70,14 @@ export interface DraftKeyFrameDto {
   duration: number
 }
 
+function filterMinAdjacentDiffNumbers(arr) {
+  let diffs = arr.slice(1).map((num, index) => num - arr[index]) // 获取相邻数字的差值
+
+  let minDiffIndex = diffs.indexOf(Math.min(...diffs)) // 找到最小差值的索引位置
+
+  return [...arr.slice(0, minDiffIndex + 1), ...arr.slice(minDiffIndex + 2)] // 剔除相对应的数字
+}
+
 export async function getKeyFramesInfo(
   videoPath: string,
   keyFramesDir: string
@@ -100,21 +108,28 @@ export async function getKeyFramesInfo(
   console.log('video getKeyFramesInfo :>> ', keyFrames, videoInfo)
 
   const keyFrameList: DraftKeyFrameDto[] = []
-  const startTimeList = keyFrames?.map((keyframe) =>
+  let startTimeList = keyFrames?.map((keyframe) =>
     Number(Number(keyframe?.pkt_dts_time) * 1000 * 1000)
   )
+  const isUnequal = keyFrameList?.length !== filesInfo.length
+  if (isUnequal) {
+    startTimeList = filterMinAdjacentDiffNumbers(startTimeList)
+  }
+
   const endTimeList = [...startTimeList]
   endTimeList.splice(0, 1)
   endTimeList.push(videoDuration)
 
   console.log('startTimeList :>> ', startTimeList)
   console.log('endTimeList :>> ', endTimeList)
-  const _keyframeList = keyFrames?.map((keyframe, index) => {
+  console.log('test :>> ', keyFrames?.slice(0, filesInfo?.length))
+
+  const _keyframeList = filesInfo?.map((keyframe, index) => {
     const { fileName, filePath } = filesInfo[index] || {}
     const start = startTimeList[index]
     const end = endTimeList[index]
     return {
-      ...keyframe,
+      // ...keyframe,
       fileName,
       filePath,
       start,
@@ -124,35 +139,6 @@ export async function getKeyFramesInfo(
   })
   console.log('_keyframeList :>> ', _keyframeList)
 
-  let preFrameTimeStamp = 0
-  // let nextStart
-  for (let index = 0; index < keyFrames.length; index++) {
-    const keyFrame = keyFrames[index]
-    const { fileName, filePath } = filesInfo[index] || {}
-    const { pkt_dts_time, pts_time: end_time } = keyFrame
-    const curFrameTimeStamp = Number((Number(pkt_dts_time) * 1000 * 1000).toFixed(0))
-
-    const duration = curFrameTimeStamp - preFrameTimeStamp
-    preFrameTimeStamp = curFrameTimeStamp
-
-    keyFrameList.push({
-      // ...keyFrame,
-      fileName,
-      filePath,
-      start: curFrameTimeStamp,
-      end: Number(Number(pkt_dts_time) * 1000 * 1000),
-      duration: 0
-    })
-
-    if (index > 0) {
-      keyFrameList[index - 1].duration = duration
-    }
-
-    if (index === keyFrames.length - 1) {
-      keyFrameList[index].duration = videoDuration - curFrameTimeStamp
-    }
-  }
-  console.log('format :>> ', keyFrameList)
   return { keyFrameList: _keyframeList, videoInfo }
 }
 

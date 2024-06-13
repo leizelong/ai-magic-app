@@ -50,12 +50,18 @@ export async function getVideoInfo(videoPath: string) {
 export async function removeWatermark(inputVideoPath: string, outputVideoPath: string) {
   // ffmpeg -i input.mp4 -vf "delogo=x=10:y=10:w=100:h=20" output.mp4
   const { width, height } = await getVideoInfo(inputVideoPath)
-  const titleHeight = 200
-  const bottom = 50
+  const titleHeight = 300
+  const bottom = 10
   await exec<string>(
-    `ffmpeg -i ${inputVideoPath} -vf "delogo=x=0:y=${
+    `ffmpeg -i ${inputVideoPath} -vf "delogo=x=${width * 0.05}:y=${
       height - titleHeight - bottom
-    }:w=${width}:h=${titleHeight}" ${outputVideoPath}`
+    }:w=${width * 0.9}:h=${titleHeight}" ${outputVideoPath} -y`
   )
   console.log('去水印成功 :>> ')
 }
+/**
+ ffmpeg -i D:\ai-workspace\男配富可敌国2\素材\origin.mp4 -vf "delogo=x=0:y=518:w=1000:h=200" D:\ai-workspace\男配富可敌国2\remove-water.mp4
+
+ ffmpeg -i D:\\ai-workspace\\男配富可敌国2\\素材\\origin.mp4 -vf "delogo=x=102.4:y=518:w=819.2:h=200" ./remove-water.mp4 -y
+
+ */
