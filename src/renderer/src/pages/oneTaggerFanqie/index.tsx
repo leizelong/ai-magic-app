@@ -11,7 +11,8 @@ import {
   FormInstance,
   List,
   InputNumber,
-  Select
+  Select,
+  Modal
 } from 'antd'
 import './index.scss'
 import { exec, generateHash, getSettingConfig, playSuccessMusic, sleep } from '@renderer/utils/tool'
@@ -41,7 +42,7 @@ import {
   renameFileIfHasWhiteSpace
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
-import { combineJianYingVideo } from '@renderer/utils/jianYing'
+import { JianYingAppDraftsDir, combineJianYingVideo } from '@renderer/utils/jianYing'
 import { fs, path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
 import { batchHighDefinition } from '@renderer/utils/high-definition'
@@ -280,9 +281,25 @@ export function OneTaggerFanqiePage() {
         removeWaterVideoPath,
         keyframesOutputPath
       )
-      combineJianYingVideo({ keyFrameList, videoInfo })
-      message.success('剪映草稿视频合成成功')
-      playSuccessMusic()
+      const draftProjectName = path.basename(path.dirname(videoInfo.filePath))
+      const draftProjectDir = path.join(JianYingAppDraftsDir, draftProjectName)
+
+      const gotoCombine = () => {
+        combineJianYingVideo({ keyFrameList, videoInfo })
+        message.success('剪映草稿视频合成成功')
+        playSuccessMusic()
+      }
+
+      if (fs.existsSync(draftProjectDir)) {
+        await Modal.confirm({
+          title: '剪映目录已存在，是否覆盖？',
+          onOk: () => {
+            gotoCombine()
+          }
+        })
+      } else {
+        gotoCombine()
+      }
     } catch (error: any) {
       if (error.message.includes('does not exist')) {
         message.error('请先把图片批量高清处理')
@@ -318,6 +335,7 @@ export function OneTaggerFanqiePage() {
 
   async function handleTotalSteps() {
     await handleUnzipImages()
+    updateKeyframesData()
     await handleRemoveWater()
     await handleCombineVideo()
   }

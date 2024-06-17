@@ -2,6 +2,7 @@ import { checkAndCreateDirectory, listFilesInDirectory } from './file'
 import { fs, path } from './module'
 import { exec } from './tool'
 import { getVideoDuration } from './ffmpeg'
+import { message } from 'antd'
 
 export type FrameResult = {
   frames: FrameDto[]
@@ -107,12 +108,14 @@ export async function getKeyFramesInfo(
 
   console.log('video getKeyFramesInfo :>> ', keyFrames, videoInfo)
 
-  const keyFrameList: DraftKeyFrameDto[] = []
   let startTimeList = keyFrames?.map((keyframe) =>
     Number(Number(keyframe?.pkt_dts_time) * 1000 * 1000)
   )
-  const isUnequal = keyFrameList?.length !== filesInfo.length
+
+  const isUnequal = keyFrames?.length !== filesInfo.length
+
   if (isUnequal) {
+    message.warning('视频帧和素材对应不上')
     startTimeList = filterMinAdjacentDiffNumbers(startTimeList)
   }
 
@@ -122,7 +125,6 @@ export async function getKeyFramesInfo(
 
   console.log('startTimeList :>> ', startTimeList)
   console.log('endTimeList :>> ', endTimeList)
-  console.log('test :>> ', keyFrames?.slice(0, filesInfo?.length))
 
   const _keyframeList = filesInfo?.map((keyframe, index) => {
     const { fileName, filePath } = filesInfo[index] || {}

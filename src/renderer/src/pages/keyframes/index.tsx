@@ -11,7 +11,8 @@ import {
   FormInstance,
   List,
   InputNumber,
-  Select
+  Select,
+  Modal
 } from 'antd'
 import './index.scss'
 import { exec, generateHash, getSettingConfig, playSuccessMusic, sleep } from '@renderer/utils/tool'
@@ -38,7 +39,7 @@ import {
   writeToFile
 } from '@renderer/utils/file'
 import { autoUpdateId } from '@renderer/hooks'
-import { combineJianYingVideo } from '@renderer/utils/jianYing'
+import { JianYingAppDraftsDir, combineJianYingVideo } from '@renderer/utils/jianYing'
 import { fs, path } from '@renderer/utils/module'
 import { SearchProps } from 'antd/es/input'
 import { batchHighDefinition } from '@renderer/utils/high-definition'
@@ -359,10 +360,26 @@ export function KeyframesPage() {
         videoPath,
         image2ImageHighOutputPath
       )
+      const draftProjectName = path.basename(path.dirname(videoInfo.filePath))
+      const draftProjectDir = path.join(JianYingAppDraftsDir, draftProjectName)
+
+      const gotoCombine = () => {
+        combineJianYingVideo({ keyFrameList, videoInfo })
+        message.success('剪映草稿视频合成成功')
+        playSuccessMusic()
+      }
+
+      if (fs.existsSync(draftProjectDir)) {
+        await Modal.confirm({
+          title: '剪映目录已存在，是否覆盖？',
+          onOk: () => {
+            gotoCombine()
+          }
+        })
+      } else {
+        gotoCombine()
+      }
       // todo 检测草稿是否存在，提示是否覆盖
-      combineJianYingVideo({ keyFrameList, videoInfo })
-      message.success('剪映草稿视频合成成功')
-      playSuccessMusic()
     } catch (error: any) {
       if (error.message.includes('does not exist')) {
         message.error('请先把图片批量高清处理')

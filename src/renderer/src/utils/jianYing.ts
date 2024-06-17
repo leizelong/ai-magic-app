@@ -15,7 +15,7 @@ import { copyDirectoryContents } from './file'
 import { DraftKeyFrameDto } from './frame'
 import { path } from './module'
 
-const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
+export const JianYingAppDraftsDir = 'D:\\Program Files\\JianyingPro Drafts'
 
 const JianYingTemplateDir = getUnpackPath('templates', 'JianYingDraft')
 
