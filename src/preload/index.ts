@@ -4,7 +4,7 @@ import child_process from 'child_process'
 import path from 'path'
 import fs from 'fs'
 
-const unzipper = require('unzipper');
+const unzipper = require('unzipper')
 
 // Custom APIs for renderer
 export const api = { child_process, path, fs, unzipper }

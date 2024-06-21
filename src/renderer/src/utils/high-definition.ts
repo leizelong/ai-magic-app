@@ -1,6 +1,6 @@
-import { isDirectoryEmpty } from './file'
-import { child_process, path } from './module'
-
+import { findTargetFile, isDirectoryEmpty } from './file'
+import { child_process, fs, path } from './module'
+const { BrowserWindow, nativeImage } = require('electron')
 const { spawn } = child_process
 
 // 定义Python脚本的路径和参数
@@ -9,16 +9,33 @@ const inputDirectory = 'input_images' // 替换为包含输入图像的文件夹
 const outputDirectory = 'output_images' // 替换为输出高清化后图像的文件夹路径
 const resolution = '1440x1080' // 替换为所需的分辨率
 
+function getImageSize(filePath: string) {
+  let image = nativeImage.createFromPath(filePath)
+  let size = image.getSize()
+  return size
+}
+
 // 调用Python脚本
 
-export function batchHighDefinition(
+// 4:3  => 9: 16     9 / 4 * 3
+export async function batchHighDefinition(
   /** 输入图像的文件夹路径 */
   inputDirectory: string,
   /** 输出高清化后图像的文件夹路径 */
-  outputDirectory: string,
+  outputDirectory: string
   /** 所需的分辨率 */
-  resolution: string = '1440x1080'
+  // resolution: string = '1440x1080'
 ) {
+  const firstKeyframe = await findTargetFile(inputDirectory, '.png')
+
+  const size = await getImageSize(firstKeyframe)
+
+  let resolution = '1440x1080'
+  // 3: 4
+  // if (size.width / size.height === 3 / 4) {
+  //   resolution = '750x1448'
+  // }
+
   return new Promise<void>((resolve, reject) => {
     if (isDirectoryEmpty(inputDirectory)) {
       reject(new Error(`${inputDirectory} 目录是空的`))
@@ -30,16 +47,15 @@ export function batchHighDefinition(
       { timeout: 1000, shell: true }
     )
 
-
     // 监听Python脚本的标准输出
     pythonProcess.stdout.on('data', (data) => {
-      console.log(`stdout: ${data}`);
+      console.log(`stdout: ${data}`)
       resolve()
     })
 
     // 监听Python脚本的标准错误输出
     pythonProcess.stderr.on('data', (error) => {
-      console.log(`stderr: ${error}`);
+      console.log(`stderr: ${error}`)
       reject(new Error(`${error}`))
     })
 

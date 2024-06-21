@@ -217,6 +217,23 @@ export function OneTaggerFanqiePage() {
     await removeWatermark(targetVideoPath, removeWaterVideoPath)
   }
 
+  async function handleBatchHighImage() {
+    try {
+      setBatchHighDefinitionLoading(true)
+      const { image2ImageHighOutputPath, keyframesOutputPath } = getProjectAllPaths()
+      // debugger
+      checkAndCreateDirectory(image2ImageHighOutputPath)
+      await batchHighDefinition(keyframesOutputPath, image2ImageHighOutputPath)
+      updateKeyframesData()
+      message.success('批量高清成功')
+      // playSuccessMusic()
+    } catch (error: any) {
+      message.error(error.message)
+    } finally {
+      setBatchHighDefinitionLoading(false)
+    }
+  }
+
   async function handleUseSeed(item: KeyframeDto, index: number) {
     const { seed } = item
     if (!seed) {
@@ -273,13 +290,13 @@ export function OneTaggerFanqiePage() {
   }
 
   async function handleCombineVideo() {
-    const { videoPath, keyframesOutputPath, materialDirPath, removeWaterVideoPath } =
+    const { videoPath, image2ImageHighOutputPath, materialDirPath, removeWaterVideoPath } =
       await getProjectAllPaths()
     try {
       setCombineLoading(true)
       const { keyFrameList, videoInfo } = await getKeyFramesInfo(
         removeWaterVideoPath,
-        keyframesOutputPath
+        image2ImageHighOutputPath
       )
       const draftProjectName = path.basename(path.dirname(videoInfo.filePath))
       const draftProjectDir = path.join(JianYingAppDraftsDir, draftProjectName)
@@ -335,7 +352,8 @@ export function OneTaggerFanqiePage() {
 
   async function handleTotalSteps() {
     await handleUnzipImages()
-    updateKeyframesData()
+    await handleBatchHighImage()
+    // updateKeyframesData()
     await handleRemoveWater()
     await handleCombineVideo()
   }
@@ -445,6 +463,13 @@ export function OneTaggerFanqiePage() {
           </Button>
           <Button type="primary" onClick={handleRemoveWater} loading={keyFramesLoading}>
             去字幕
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleBatchHighImage}
+            loading={batchHighDefinitionLoading}
+          >
+            批量高清
           </Button>
           <Button type="primary" onClick={handleCombineVideo} loading={combineLoading}>
             剪映合成
